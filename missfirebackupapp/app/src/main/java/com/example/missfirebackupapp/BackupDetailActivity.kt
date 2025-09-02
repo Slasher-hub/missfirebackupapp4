@@ -147,7 +147,13 @@ class BackupDetailActivity : AppCompatActivity() {
                         findViewById<android.view.View>(id)?.isEnabled = false
                     }
                 }
-                if (b.status == "PRONTO") lockFields()
+                // Bloqueia edição se já estiver PRONTO (aguardando sync) ou SINCRONIZADO
+                if (b.status == "PRONTO" || b.status == "SINCRONIZADO") {
+                    lockFields()
+                    if (b.status == "SINCRONIZADO") {
+                        tvStatus.text = "Status: ${b.status} (somente leitura)"
+                    }
+                }
                 // Render fotos e coordenadas
                 renderFotos(containerFotos, tvFotosTitulo, fotosList)
             }
@@ -179,6 +185,10 @@ class BackupDetailActivity : AppCompatActivity() {
         }
 
         btnSalvar.setOnClickListener {
+            // Evita qualquer alteração se sincronizado
+            if (current?.status == "SINCRONIZADO") {
+                Toast.makeText(this, "Registro sincronizado - somente leitura", Toast.LENGTH_SHORT).show(); return@setOnClickListener
+            }
             val base = current ?: return@setOnClickListener
             if (!validateBasic()) return@setOnClickListener
             val atualizado = base.copy(
@@ -200,6 +210,9 @@ class BackupDetailActivity : AppCompatActivity() {
         }
 
         btnFinalizar.setOnClickListener {
+            if (current?.status == "SINCRONIZADO") {
+                Toast.makeText(this, "Já sincronizado", Toast.LENGTH_SHORT).show(); return@setOnClickListener
+            }
             val base = current ?: return@setOnClickListener
             if (!validateAll()) return@setOnClickListener
             val atualizado = base.copy(

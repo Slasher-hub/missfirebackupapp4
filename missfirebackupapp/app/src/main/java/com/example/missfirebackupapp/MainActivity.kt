@@ -5,10 +5,8 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
-import android.view.Menu
-import android.view.MenuItem
 import android.view.LayoutInflater
-import android.widget.EditText
+import android.widget.AutoCompleteTextView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -145,8 +143,11 @@ class MainActivity : AppCompatActivity() {
             btnFiltroMissfire.isSelected = true
         }
 
-        // Inicia com filtro Backup selecionado
-        btnFiltroBackup.isSelected = true
+    // Inicia com filtro Backup selecionado
+    btnFiltroBackup.isSelected = true
+
+    // Botão de filtros avançados
+    findViewById<Button>(R.id.btnAbrirFiltros).setOnClickListener { abrirDialogFiltrosNovo() }
     }
 
     private fun confirmarExclusao(item: HistoricoItem) {
@@ -181,40 +182,45 @@ class MainActivity : AppCompatActivity() {
     private var filtroUnidade: String? = null
     private var filtroCava: String? = null
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.top_app_bar_menu, menu)
-        return true
-    }
+    private fun abrirDialogFiltrosNovo() {
+        if (filtroAtual != "Backup") { Toast.makeText(this, "Filtros apenas para Backups", Toast.LENGTH_SHORT).show(); return }
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_filtros_novo, null)
+        val actMesAno = view.findViewById<AutoCompleteTextView>(R.id.actMesAno)
+        val actUnidade = view.findViewById<AutoCompleteTextView>(R.id.actUnidadeFiltro)
+        val actCava = view.findViewById<AutoCompleteTextView>(R.id.actCavaFiltro)
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_filter -> { abrirDialogFiltro(); true }
-            else -> super.onOptionsItemSelected(item)
+        // Extrair listas distintas da base atual (listaBackup original sem filtros no momento)
+        val mesesAnos = listaBackup.mapNotNull { it.titulo.substringAfter("Backup ").substring(0,10).takeIf { s -> s.count{it=='/'}==2 } }
+            .map { it.substring(3) } // pega MM/YYYY
+            .distinct().sorted()
+        val unidades = listaBackup.mapNotNull { it.titulo.substringAfterLast(" - ").ifBlank { null } }.distinct().sorted()
+        val cavas = mutableListOf<String>() // Placeholder se quisermos extrair cavas (não presente no titulo atual)
+
+        fun <T> setAdapter(act: AutoCompleteTextView, data: List<T>) {
+            act.setAdapter(android.widget.ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, data))
         }
-    }
+        setAdapter(actMesAno, mesesAnos)
+        setAdapter(actUnidade, unidades)
+        setAdapter(actCava, cavas)
 
-    private fun abrirDialogFiltro() {
-        val view = LayoutInflater.from(this).inflate(R.layout.dialog_filtros, null)
-        val etMesAno = view.findViewById<EditText>(R.id.etMesAno)
-        val etUnidade = view.findViewById<EditText>(R.id.etUnidade)
-        val etCava = view.findViewById<EditText>(R.id.etCava)
-        etMesAno.setText(filtroMesAno ?: "")
-        etUnidade.setText(filtroUnidade ?: "")
-        etCava.setText(filtroCava ?: "")
-        AlertDialog.Builder(this)
-            .setTitle("Filtros")
+        actMesAno.setText(filtroMesAno ?: "", false)
+        actUnidade.setText(filtroUnidade ?: "", false)
+        actCava.setText(filtroCava ?: "", false)
+
+        val dialog = AlertDialog.Builder(this)
             .setView(view)
-            .setPositiveButton("Aplicar") { _, _ ->
-                filtroMesAno = etMesAno.text.toString().ifBlank { null }
-                filtroUnidade = etUnidade.text.toString().ifBlank { null }
-                filtroCava = etCava.text.toString().ifBlank { null }
-                aplicarFiltros()
-            }
-            .setNeutralButton("Limpar") { _, _ ->
-                filtroMesAno = null; filtroUnidade = null; filtroCava = null; aplicarFiltros()
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
+            .create()
+
+        view.findViewById<Button>(R.id.btnLimparFiltros).setOnClickListener {
+            filtroMesAno = null; filtroUnidade = null; filtroCava = null; aplicarFiltros(); dialog.dismiss()
+        }
+        view.findViewById<Button>(R.id.btnAplicarFiltros).setOnClickListener {
+            filtroMesAno = actMesAno.text.toString().ifBlank { null }
+            filtroUnidade = actUnidade.text.toString().ifBlank { null }
+            filtroCava = actCava.text.toString().ifBlank { null }
+            aplicarFiltros(); dialog.dismiss()
+        }
+        dialog.show()
     }
 
     private fun aplicarFiltros() {
