@@ -88,16 +88,15 @@
             android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold" />
-        <Button
+        <ImageButton
             android:id="@+id/btnAbrirFiltros"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:background="@drawable/rounded_gray_button"
-            android:text="Filtros"
-            android:textColor="@color/white"
-            android:textSize="12sp"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp" />
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@null"
+            android:contentDescription="Filtro"
+            android:padding="6dp"
+            android:src="@drawable/ic_filter_list"
+            android:tint="@color/white"/>
     </LinearLayout>
 
     <!-- Filtros -->

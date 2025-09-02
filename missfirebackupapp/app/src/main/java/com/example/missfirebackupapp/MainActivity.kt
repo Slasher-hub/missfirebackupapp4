@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: HistoricoAdapter
 
     private var listaBackup = mutableListOf<HistoricoItem>()
+    private var listaBackupEntities = mutableListOf<com.example.missfirebackupapp.data.BackupEntity>()
     private var listaMissfire = mutableListOf<HistoricoItem>() // futuramente Missfire
     private var filtroAtual = "Backup"
 
@@ -78,6 +79,7 @@ class MainActivity : AppCompatActivity() {
         val dao = BackupDatabase.getDatabase(this).backupDao()
         lifecycleScope.launch {
             dao.getAllBackups().collectLatest { backups ->
+                listaBackupEntities = backups.toMutableList()
                 listaBackup = backups.map { b ->
                     val concluido = b.status == "SINCRONIZADO"
                     HistoricoItem(
@@ -146,8 +148,9 @@ class MainActivity : AppCompatActivity() {
     // Inicia com filtro Backup selecionado
     btnFiltroBackup.isSelected = true
 
-    // Botão de filtros avançados
-    findViewById<Button>(R.id.btnAbrirFiltros).setOnClickListener { abrirDialogFiltrosNovo() }
+    // Estado inicial filtros
+    findViewById<ImageButton>(R.id.btnAbrirFiltros).setOnClickListener { abrirDialogFiltrosMultiselect() }
+    atualizarIconeFiltro()
     }
 
     private fun confirmarExclusao(item: HistoricoItem) {
@@ -177,47 +180,50 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Campos filtro atuais em memória
-    private var filtroMesAno: String? = null
-    private var filtroUnidade: String? = null
-    private var filtroCava: String? = null
+    // Multi-seleção filtros
+    private var selecionadosMesAno = mutableSetOf<String>()
+    private var selecionadosUnidade = mutableSetOf<String>()
+    private var selecionadosCava = mutableSetOf<String>()
+    private var filtrosAtivos = false
 
-    private fun abrirDialogFiltrosNovo() {
+    private fun abrirDialogFiltrosMultiselect() {
         if (filtroAtual != "Backup") { Toast.makeText(this, "Filtros apenas para Backups", Toast.LENGTH_SHORT).show(); return }
-        val view = LayoutInflater.from(this).inflate(R.layout.dialog_filtros_novo, null)
-        val actMesAno = view.findViewById<AutoCompleteTextView>(R.id.actMesAno)
-        val actUnidade = view.findViewById<AutoCompleteTextView>(R.id.actUnidadeFiltro)
-        val actCava = view.findViewById<AutoCompleteTextView>(R.id.actCavaFiltro)
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_filtros_multiselect, null)
+        val contMesAno = view.findViewById<android.widget.LinearLayout>(R.id.containerMesAno)
+        val contUnidade = view.findViewById<android.widget.LinearLayout>(R.id.containerUnidade)
+        val contCava = view.findViewById<android.widget.LinearLayout>(R.id.containerCava)
 
-        // Extrair listas distintas da base atual (listaBackup original sem filtros no momento)
-        val mesesAnos = listaBackup.mapNotNull { it.titulo.substringAfter("Backup ").substring(0,10).takeIf { s -> s.count{it=='/'}==2 } }
-            .map { it.substring(3) } // pega MM/YYYY
+        val mesesAnos = listaBackupEntities.mapNotNull { it.data }
+            .mapNotNull { d -> if (d.length>=7) d.substring(3) else null }
             .distinct().sorted()
-        val unidades = listaBackup.mapNotNull { it.titulo.substringAfterLast(" - ").ifBlank { null } }.distinct().sorted()
-        val cavas = mutableListOf<String>() // Placeholder se quisermos extrair cavas (não presente no titulo atual)
+        val unidades = listaBackupEntities.mapNotNull { it.unidade }.distinct().sorted()
+        val cavas = listaBackupEntities.mapNotNull { it.cava }.filter { it.isNotBlank() }.distinct().sorted()
 
-        fun <T> setAdapter(act: AutoCompleteTextView, data: List<T>) {
-            act.setAdapter(android.widget.ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, data))
+        fun addChecks(container: android.widget.LinearLayout, values: List<String>, selecionados: MutableSet<String>) {
+            container.removeAllViews()
+            values.forEach { v ->
+                val cb = android.widget.CheckBox(this).apply {
+                    text = v
+                    setTextColor(resources.getColor(R.color.white))
+                    isChecked = selecionados.contains(v)
+                }
+                cb.setOnCheckedChangeListener { _, checked -> if (checked) selecionados.add(v) else selecionados.remove(v) }
+                container.addView(cb)
+            }
+            if (values.isEmpty()) {
+                val tv = android.widget.TextView(this).apply { text = "(vazio)"; setTextColor(resources.getColor(R.color.white)) }
+                container.addView(tv)
+            }
         }
-        setAdapter(actMesAno, mesesAnos)
-        setAdapter(actUnidade, unidades)
-        setAdapter(actCava, cavas)
+        addChecks(contMesAno, mesesAnos, selecionadosMesAno)
+        addChecks(contUnidade, unidades, selecionadosUnidade)
+        addChecks(contCava, cavas, selecionadosCava)
 
-        actMesAno.setText(filtroMesAno ?: "", false)
-        actUnidade.setText(filtroUnidade ?: "", false)
-        actCava.setText(filtroCava ?: "", false)
-
-        val dialog = AlertDialog.Builder(this)
-            .setView(view)
-            .create()
-
-        view.findViewById<Button>(R.id.btnLimparFiltros).setOnClickListener {
-            filtroMesAno = null; filtroUnidade = null; filtroCava = null; aplicarFiltros(); dialog.dismiss()
+        val dialog = AlertDialog.Builder(this).setView(view).create()
+        view.findViewById<Button>(R.id.btnLimparFiltrosMulti).setOnClickListener {
+            selecionadosMesAno.clear(); selecionadosUnidade.clear(); selecionadosCava.clear(); aplicarFiltros(); dialog.dismiss()
         }
-        view.findViewById<Button>(R.id.btnAplicarFiltros).setOnClickListener {
-            filtroMesAno = actMesAno.text.toString().ifBlank { null }
-            filtroUnidade = actUnidade.text.toString().ifBlank { null }
-            filtroCava = actCava.text.toString().ifBlank { null }
+        view.findViewById<Button>(R.id.btnAplicarFiltrosMulti).setOnClickListener {
             aplicarFiltros(); dialog.dismiss()
         }
         dialog.show()
@@ -225,27 +231,41 @@ class MainActivity : AppCompatActivity() {
 
     private fun aplicarFiltros() {
         if (filtroAtual != "Backup") { atualizarLista(); return }
-        val dao = BackupDatabase.getDatabase(this).backupDao()
-        lifecycleScope.launch {
-            val filtrados = withContext(Dispatchers.IO) {
-                if (filtroMesAno == null && filtroUnidade == null && filtroCava == null) {
-                    dao.filtrarBackups(null, null, null)
-                } else {
-                    dao.filtrarBackups(filtroMesAno, filtroUnidade, filtroCava)
-                }
+        val filtrados = listaBackupEntities.filter { b ->
+            val mesAno = b.data?.let { if (it.length>=7) it.substring(3) else null }
+            val matchMes = selecionadosMesAno.isEmpty() || (mesAno!=null && selecionadosMesAno.contains(mesAno))
+            val matchUni = selecionadosUnidade.isEmpty() || selecionadosUnidade.contains(b.unidade)
+            val matchCava = selecionadosCava.isEmpty() || selecionadosCava.contains(b.cava)
+            matchMes && matchUni && matchCava
+        }
+        listaBackup = filtrados.map { b ->
+            HistoricoItem(
+                id = b.id.toString(),
+                titulo = "Backup ${b.data} - ${b.unidade}",
+                status = b.status,
+                syncError = b.syncError,
+                concluido = b.status == "SINCRONIZADO"
+            )
+        }.toMutableList()
+        adapter.atualizarLista(listaBackup)
+        filtrosAtivos = selecionadosMesAno.isNotEmpty() || selecionadosUnidade.isNotEmpty() || selecionadosCava.isNotEmpty()
+        atualizarIconeFiltro()
+        val indicador = if (filtrosAtivos) "(Filtros)" else ""
+        Toast.makeText(this, "${listaBackup.size} registros $indicador", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun atualizarIconeFiltro() {
+        val btn = findViewById<ImageButton>(R.id.btnAbrirFiltros)
+        if (filtrosAtivos) {
+            btn.setColorFilter(resources.getColor(R.color.redAccent, theme))
+            btn.background = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.OVAL
+                setStroke(3, resources.getColor(R.color.redAccent, theme))
+                setColor(android.graphics.Color.TRANSPARENT)
             }
-            listaBackup = filtrados.map { b ->
-                HistoricoItem(
-                    id = b.id.toString(),
-                    titulo = "Backup ${b.data} - ${b.unidade}",
-                    status = b.status,
-                    syncError = b.syncError,
-                    concluido = b.status == "SINCRONIZADO"
-                )
-            }.toMutableList()
-            adapter.atualizarLista(listaBackup)
-            val indicador = if (filtroMesAno!=null || filtroUnidade!=null || filtroCava!=null) "(Filtros)" else ""
-            Toast.makeText(this@MainActivity, "${listaBackup.size} registros $indicador", Toast.LENGTH_SHORT).show()
+        } else {
+            btn.setColorFilter(resources.getColor(R.color.white, theme))
+            btn.background = null
         }
     }
 
