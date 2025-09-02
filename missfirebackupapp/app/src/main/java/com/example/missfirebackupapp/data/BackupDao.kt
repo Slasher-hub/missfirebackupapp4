@@ -48,6 +48,16 @@ interface BackupDao {
     @Query("DELETE FROM backup_table")
     suspend fun clearAll(): Int
 
+    // ---- FILTROS ----
+    // Esperando formato de data como dd/MM/yyyy ou yyyy-MM-dd. Usaremos LIKE para mês/ano flexível.
+    // monthPattern ex: '09/2025' se data for dd/MM/yyyy. Ajustar se formato diferente.
+    @Query(
+        "SELECT * FROM backup_table WHERE (:mesAno IS NULL OR data LIKE '%' || :mesAno) " +
+                "AND (:unidade IS NULL OR unidade LIKE '%' || :unidade || '%') " +
+                "AND (:cava IS NULL OR cava LIKE '%' || :cava || '%')"
+    )
+    suspend fun filtrarBackups(mesAno: String?, unidade: String?, cava: String?): List<BackupEntity>
+
     // ---- FOTOS ----
     @Insert
     suspend fun insertFoto(foto: FotoEntity): Long

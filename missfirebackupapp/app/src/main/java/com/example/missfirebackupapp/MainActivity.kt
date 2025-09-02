@@ -5,6 +5,11 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
+import android.view.Menu
+import android.view.MenuItem
+import android.view.LayoutInflater
+import android.widget.EditText
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -141,6 +146,77 @@ class MainActivity : AppCompatActivity() {
 
         // Inicia com filtro Backup selecionado
         btnFiltroBackup.isSelected = true
+    }
+
+    // Campos filtro atuais em memória
+    private var filtroMesAno: String? = null
+    private var filtroUnidade: String? = null
+    private var filtroCava: String? = null
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.top_app_bar_menu, menu)
+        // Adicionamos dinamicamente item de filtro se não existir
+        if (menu?.findItem(R.id.action_filter) == null) {
+            menu?.add(0, R.id.action_filter, 0, "Filtrar")?.setIcon(R.drawable.ic_filter_list)?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        }
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_filter -> { abrirDialogFiltro(); true }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun abrirDialogFiltro() {
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_filtros, null)
+        val etMesAno = view.findViewById<EditText>(R.id.etMesAno)
+        val etUnidade = view.findViewById<EditText>(R.id.etUnidade)
+        val etCava = view.findViewById<EditText>(R.id.etCava)
+        etMesAno.setText(filtroMesAno ?: "")
+        etUnidade.setText(filtroUnidade ?: "")
+        etCava.setText(filtroCava ?: "")
+        AlertDialog.Builder(this)
+            .setTitle("Filtros")
+            .setView(view)
+            .setPositiveButton("Aplicar") { _, _ ->
+                filtroMesAno = etMesAno.text.toString().ifBlank { null }
+                filtroUnidade = etUnidade.text.toString().ifBlank { null }
+                filtroCava = etCava.text.toString().ifBlank { null }
+                aplicarFiltros()
+            }
+            .setNeutralButton("Limpar") { _, _ ->
+                filtroMesAno = null; filtroUnidade = null; filtroCava = null; aplicarFiltros()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun aplicarFiltros() {
+        if (filtroAtual != "Backup") { atualizarLista(); return }
+        val dao = BackupDatabase.getDatabase(this).backupDao()
+        lifecycleScope.launch {
+            val filtrados = withContext(Dispatchers.IO) {
+                if (filtroMesAno == null && filtroUnidade == null && filtroCava == null) {
+                    dao.filtrarBackups(null, null, null)
+                } else {
+                    dao.filtrarBackups(filtroMesAno, filtroUnidade, filtroCava)
+                }
+            }
+            listaBackup = filtrados.map { b ->
+                HistoricoItem(
+                    id = b.id.toString(),
+                    titulo = "Backup ${b.data} - ${b.unidade}",
+                    status = b.status,
+                    syncError = b.syncError,
+                    concluido = b.status == "SINCRONIZADO"
+                )
+            }.toMutableList()
+            adapter.atualizarLista(listaBackup)
+            val indicador = if (filtroMesAno!=null || filtroUnidade!=null || filtroCava!=null) "(Filtros)" else ""
+            Toast.makeText(this@MainActivity, "${listaBackup.size} registros $indicador", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun atualizarLista() {
