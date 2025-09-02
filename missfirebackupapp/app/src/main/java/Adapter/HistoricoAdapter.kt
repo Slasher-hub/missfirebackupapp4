@@ -12,7 +12,8 @@ import com.example.missfirebackupapp.model.HistoricoItem
 class HistoricoAdapter(
     private var lista: MutableList<HistoricoItem>,
     private val onItemClick: (HistoricoItem) -> Unit,
-    private val onSyncClick: (HistoricoItem) -> Unit
+    private val onSyncClick: (HistoricoItem) -> Unit,
+    private val onDeleteClick: (HistoricoItem) -> Unit
 ) : RecyclerView.Adapter<HistoricoAdapter.ViewHolder>() {
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -20,6 +21,7 @@ class HistoricoAdapter(
     val status: TextView = view.findViewById(R.id.tvStatus)
     val iconStatus: ImageView = view.findViewById(R.id.iconStatus)
     val btnSync: View? = view.findViewById(R.id.btnSync)
+    val btnDelete: View? = view.findViewById(R.id.btnDelete)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -38,11 +40,13 @@ class HistoricoAdapter(
             "PRONTO" -> if (item.syncError) "A sincronizar" else "Pronto"
             else -> "Incompleto"
         }
-        when (item.status) {
+    when (item.status) {
             "SINCRONIZADO" -> {
                 holder.status.setTextColor(holder.itemView.context.getColor(R.color.gray))
                 holder.iconStatus.visibility = View.GONE
                 holder.btnSync?.visibility = View.GONE
+        holder.btnDelete?.visibility = View.VISIBLE
+        holder.btnDelete?.setOnClickListener { onDeleteClick(item) }
             }
             "PRONTO" -> {
                 holder.status.setTextColor(holder.itemView.context.getColor(
@@ -51,11 +55,13 @@ class HistoricoAdapter(
                 holder.iconStatus.visibility = if (item.syncError) View.VISIBLE else View.GONE
                 holder.btnSync?.visibility = if (item.syncError) View.VISIBLE else View.GONE
                 if (item.syncError) holder.btnSync?.setOnClickListener { onSyncClick(item) }
+        holder.btnDelete?.visibility = View.GONE
             }
             else -> { // INCOMPLETO
                 holder.status.setTextColor(holder.itemView.context.getColor(R.color.redAccent))
                 holder.iconStatus.visibility = View.VISIBLE
                 holder.btnSync?.visibility = View.GONE
+        holder.btnDelete?.visibility = View.GONE
             }
         }
 

@@ -62,4 +62,16 @@
         android:src="@drawable/ic_sync"
         app:tint="@color/white"
         android:visibility="gone"/>
+
+    <ImageButton
+        android:id="@+id/btnDelete"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="@android:color/transparent"
+        android:padding="4dp"
+        android:scaleType="centerInside"
+        android:contentDescription="Excluir"
+        android:src="@drawable/ic_delete"
+        app:tint="@color/redAccent"
+        android:visibility="gone"/>
 </LinearLayout>

@@ -48,6 +48,12 @@ interface BackupDao {
     @Query("DELETE FROM backup_table")
     suspend fun clearAll(): Int
 
+    @Query("DELETE FROM backup_table WHERE id = :id")
+    suspend fun deleteBackupById(id: Int): Int
+
+    @Query("DELETE FROM foto_table WHERE backupId = :backupId")
+    suspend fun deleteFotosByBackupId(backupId: Int): Int
+
     // ---- FILTROS ----
     // Esperando formato de data como dd/MM/yyyy ou yyyy-MM-dd. Usaremos LIKE para mês/ano flexível.
     // monthPattern ex: '09/2025' se data for dd/MM/yyyy. Ajustar se formato diferente.

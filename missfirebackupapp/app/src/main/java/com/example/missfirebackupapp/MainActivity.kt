@@ -98,7 +98,8 @@ class MainActivity : AppCompatActivity() {
         adapter = HistoricoAdapter(
             listaBackup,
             onItemClick = { item -> abrirDetalhes(item) },
-            onSyncClick = { item -> forceSync(item) }
+            onSyncClick = { item -> forceSync(item) },
+            onDeleteClick = { item -> confirmarExclusao(item) }
         )
         recyclerHistorico.adapter = adapter
 
@@ -146,6 +147,33 @@ class MainActivity : AppCompatActivity() {
 
         // Inicia com filtro Backup selecionado
         btnFiltroBackup.isSelected = true
+    }
+
+    private fun confirmarExclusao(item: HistoricoItem) {
+        if (item.status != "SINCRONIZADO") {
+            Toast.makeText(this, "Só é permitido excluir após sincronizar", Toast.LENGTH_SHORT).show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Excluir registro")
+            .setMessage("Tem certeza que deseja excluir este registro e suas fotos?")
+            .setPositiveButton("Excluir") { _, _ -> executarExclusao(item) }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun executarExclusao(item: HistoricoItem) {
+        lifecycleScope.launch {
+            val dao = BackupDatabase.getDatabase(this@MainActivity).backupDao()
+            val idInt = item.id.toIntOrNull() ?: return@launch
+            withContext(Dispatchers.IO) {
+                dao.deleteFotosByBackupId(idInt)
+                dao.deleteBackupById(idInt)
+            }
+            Toast.makeText(this@MainActivity, "Excluído", Toast.LENGTH_SHORT).show()
+            // Recarregar backups filtrados ou completos
+            aplicarFiltros()
+        }
     }
 
     // Campos filtro atuais em memória
