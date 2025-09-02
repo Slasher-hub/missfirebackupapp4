@@ -1,0 +1,21 @@
+<resources>
+    <color name="backgroundColor">#121212</color>
+    <color name="primaryButton">#6E1E1E</color> <!-- Vermelho escuro -->
+    <color name="secondaryButton">#333333</color> <!-- Cinza elegante -->
+    <color name="textPrimary">#FFFFFF</color>
+    <color name="fieldBorder">#888888</color> <!-- Cor da borda dos campos -->
+    <color name="hintColor">#AAAAAA</color> <!-- Cor do hint -->}
+    <color name="redPrimary">#6E1E1E</color>
+    <color name="grayPrimary">#606060</color>
+    <color name="fieldBackground">#1E1E1E</color>
+    <color name="white">#FFFFFF</color>
+    <color name="backgroundDark">#121212</color>
+    <color name="redAccent">#6E1E1E</color>
+    <color name="buttonSecondary">#444444</color>
+    <color name="grayAccent">#444444</color>
+    <color name="gray">#757575</color>
+     <color name="Hint">@color/box_stroke_color</color>
+    <color name="grayScroll">#606060</color>
+
+
+</resources>

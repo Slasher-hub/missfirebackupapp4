@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Nome do App -->
+    <string name="app_name">Missfire Backup App</string>
+
+    <!-- Tela de Login -->
+
+    <string name="login">Login</string>
+    <string name="usuario">Usuário</string>
+    <string name="status">Status</string>
+    <string name="menu_principal">Menu Principal</string>
+
+    <string name="historico_registros">Histórico de Registros</string>
+
+
+
+    <!-- Telas principais -->
+    <string name="titulo_principal">Menu Principal</string>
+    <string name="tela_de_backup">Tela de Backup</string>
+    <string name="tela_de_missfire">Tela de Missfire</string>
+
+    <!-- Ações -->
+    <string name="registrar_backup">Registrar Backup</string>
+    <string name="registrar_missfire">Registrar Missfire</string>
+    <string name="sair">Sair</string>
+    <string name="voltar">Voltar</string>
+    <string name="fazer_upload">Fazer Upload</string>
+    <string name="salvar_local">Salvar Local</string>
+
+    <!-- Campos Backup -->
+    <string name="data_backup">Data do Backup</string>
+    <string name="unidade_servico">Unidade de Serviço</string>
+    <string name="nome_poligono">Nome do Polígono</string>
+    <string name="id_do_fogo">ID do Fogo</string>
+    <string name="litologia">Litologia</string>
+    <string name="classe">Classe</string>
+    <string name="tipo_detonador">Tipo de Detonador</string>
+    <string name="motivo_backup">Motivo do Backup</string>
+    <string name="id_espoleta">ID da Espoleta</string>
+    <string name="numero_furo">Número do Furo</string>
+    <string name="coordenada">Coordenada</string>
+    <string name="observacoes">Observações</string>
+
+    <!-- Campos Missfire -->
+    <string name="data_do_desmonte">Data do Desmonte</string>
+    <string name="data_descoberta">Data da Descoberta</string>
+    <string name="local_encontrado">Local Encontrado</string>
+    <string name="descricao_da_investigacao">Descrição da Investigação</string>
+    <string name="adicionar_atualizacao">Adicionar Atualização</string>
+    <string name="causa">Causa</string>
+    <string name="medidas_preventivas">Medidas Preventivas</string>
+    <string name="foto_inicial">Foto Inicial</string>
+
+    <!-- Login -->
+    <string name="email">Email</string>
+    <string name="senha">Senha</string>
+    <string name="entrar">Entrar</string>
+    <string name="registrar">Registrar</string>
+    <string name="hist_rico_de_registros">Histórico de Registros</string>
+    <string name="backup">Backup\n</string>
+    <string name="missfire">Missfire\n</string>
+</resources>

@@ -1,0 +1,87 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Corpo do calendário -->
+    <path
+        android:strokeColor="#800020"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M3,5h18a2,2 0 0 1 2,2v14a2,2 0 0 1 -2,2H3a2,2 0 0 1 -2,-2V7a2,2 0 0 1 2,-2z" />
+
+    <!-- Linha separando cabeçalho -->
+    <path
+        android:strokeColor="#800020"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M3,10h18" />
+
+    <!-- Pinos do topo -->
+    <path
+        android:strokeColor="#800020"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M8,2v4" />
+    <path
+        android:strokeColor="#800020"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M16,2v4" />
+
+    <!-- Pontos representando os dias -->
+    <!-- Primeira linha -->
+    <path
+        android:strokeColor="#800020"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M7,13h0" />
+    <path
+        android:strokeColor="#800020"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M12,13h0" />
+    <path
+        android:strokeColor="#800020"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M17,13h0" />
+
+    <!-- Segunda linha -->
+    <path
+        android:strokeColor="#800020"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M7,17h0" />
+    <path
+        android:strokeColor="#800020"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M12,17h0" />
+    <path
+        android:strokeColor="#800020"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M17,17h0" />
+</vector>

@@ -1,0 +1,561 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/backgroundDark">
+
+    <!-- Área de rolagem para os campos -->
+    <ScrollView
+        android:id="@+id/scrollContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/actionButtons"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Toolbar -->
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/topAppBarBackup"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@color/redAccent"
+                app:title="@string/registrar_backup"
+                app:titleTextColor="@color/white"
+                app:navigationIcon="@drawable/ic_arrow_back"
+                app:navigationIconTint="@color/white" />
+
+            <Space android:layout_width="match_parent" android:layout_height="24dp" />
+
+            <!-- Campo padrão para TextInputLayout -->
+            <!-- Todos os campos possuem fundo cinza, texto branco e borda arredondada -->
+
+            <!-- Data -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Data"
+                android:textColorHint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:endIconMode="custom"
+                app:endIconDrawable="@drawable/ic_calendar"
+                app:endIconTint="@color/white"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputData"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="date"
+                    android:textColor="@android:color/white"
+                    android:minHeight="50dp"
+                    android:maxHeight="50dp"
+                    android:focusable="false"/>
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+                   <!-- Unidade de Serviço -->
+                   <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Unidade de Serviço"
+                android:textColorHint="@color/white"
+                app:endIconMode="dropdown_menu"
+                app:endIconTint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+
+                <AutoCompleteTextView
+                    android:id="@+id/inputUnidade"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:textColor="@color/white"
+                    android:inputType="none"
+                    android:minHeight="50dp"
+                    android:maxHeight="50dp"
+                    android:focusable="false"
+                    tools:ignore="RtlSymmetry" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <!-- Cava -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Cava"
+                android:textColorHint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputCava"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical|start"
+                    android:paddingStart="12dp"
+                    android:minHeight="50dp"
+                    android:maxHeight="50dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <!-- Banco -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Banco"
+                android:textColorHint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputBanco"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical|start"
+                    android:paddingStart="12dp"
+                    android:minHeight="50dp"
+                    android:maxHeight="50dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white"  />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <!-- ID do Fogo -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="ID do Fogo"
+                android:textColorHint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputFogo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical|start"
+                    android:paddingStart="12dp"
+                    android:minHeight="50dp"
+                    android:maxHeight="50dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <!-- Número do Furo -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Número do Furo"
+                android:textColorHint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputFuro"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical|start"
+                    android:paddingStart="12dp"
+                    android:minHeight="50dp"
+                    android:maxHeight="50dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <!-- Número do Detonador -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Número do Detonador"
+                android:textColorHint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputDetonador"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical|start"
+                    android:paddingStart="12dp"
+                    android:minHeight="50dp"
+                    android:maxHeight="50dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <!-- ID da Espoleta -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="ID da Espoleta"
+                android:textColorHint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputEspoleta"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical|start"
+                    android:paddingStart="12dp"
+                    android:minHeight="50dp"
+                    android:maxHeight="50dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <!-- Motivo do Backup -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Motivo do Backup"
+                android:textColorHint="@color/white"
+                app:endIconMode="dropdown_menu"
+                app:endIconTint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+                <AutoCompleteTextView
+                    android:id="@+id/inputMotivo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:textColor="@color/white"
+                    android:inputType="none"
+                    android:minHeight="50dp"
+                    android:maxHeight="50dp"
+                    android:focusable="false"
+                    tools:ignore="RtlSymmetry"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <!-- Tipo de Detonador -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Tipo de Detonador"
+                android:textColorHint="@color/white"
+                app:endIconMode="dropdown_menu"
+                app:endIconTint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+                <AutoCompleteTextView
+                    android:id="@+id/inputTipoDetonador"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:textColor="@color/white"
+                    android:inputType="none"
+                    android:minHeight="50dp"
+                    android:maxHeight="50dp"
+                    android:focusable="false"
+                    tools:ignore="RtlSymmetry" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <!-- Cabo do Detonador -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Cabo do Detonador"
+                android:textColorHint="@color/white"
+                app:endIconMode="dropdown_menu"
+                app:endIconTint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+                <AutoCompleteTextView
+                    android:id="@+id/inputCaboDetonador"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:textColor="@color/white"
+                    android:inputType="none"
+                    android:minHeight="50dp"
+                    android:maxHeight="50dp"
+                    android:focusable="false"
+                    tools:ignore="RtlSymmetry" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <!-- Metragem -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Metragem"
+                android:textColorHint="@color/white"
+                app:endIconMode="dropdown_menu"
+                app:endIconTint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+                <AutoCompleteTextView
+                    android:id="@+id/inputMetragem"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:textColor="@color/white"
+                    android:inputType="none"
+                    android:minHeight="50dp"
+                    android:maxHeight="50dp"
+                    android:focusable="false"
+                    tools:ignore="RtlSymmetry" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <!-- Tentativa de Recuperação -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Tentativa de Recuperação?"
+                android:textColorHint="@color/white"
+                app:endIconMode="dropdown_menu"
+                app:endIconTint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+                <AutoCompleteTextView
+                    android:id="@+id/inputRecuperacao"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:textColor="@color/white"
+                    android:inputType="none"
+                    android:minHeight="50dp"
+                    android:maxHeight="50dp"
+                    android:focusable="false"
+                    tools:ignore="RtlSymmetry" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <!-- Coordenadas X -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Coordenada X"
+                android:textColorHint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inputCoordenadaX"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical|start"
+                android:paddingStart="12dp"
+                android:minHeight="50dp"
+                android:maxHeight="50dp"
+                android:textColor="@color/white"
+                android:textColorHint="@color/white" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <!-- Coordenadas Y -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Coordenada Y"
+                android:textColorHint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputCoordenadaY"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical|start"
+                    android:paddingStart="12dp"
+                    android:minHeight="50dp"
+                    android:maxHeight="50dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <!-- Coordenadas Z -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Coordenada Z"
+                android:textColorHint="@color/white"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputCoordenadaZ"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical|start"
+                    android:paddingStart="12dp"
+                    android:minHeight="50dp"
+                    android:maxHeight="50dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Space android:layout_width="match_parent" android:layout_height="32dp" />
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Barra fixa com botões -->
+    <LinearLayout
+        android:id="@+id/actionButtons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="8dp"
+        android:background="@color/backgroundDark">
+
+        <!-- Botão Foto -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFoto"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="@color/redAccent"
+            android:text="Foto"
+            android:textSize="12sp"
+            android:textColor="@color/white"
+            app:cornerRadius="20dp"
+            app:icon="@drawable/ic_camera"
+            app:iconTint="@color/white" />
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+
+        <!-- Botão Salvar -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSalvarLocal"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="@color/redAccent"
+            android:text="Salvar"
+            android:textSize="12sp"
+            android:textColor="@color/white"
+            app:cornerRadius="20dp"
+            app:icon="@drawable/ic_save"
+            app:iconTint="@color/white" />
+
+        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+
+        <!-- Botão Upload -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUpload"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="@color/redAccent"
+            android:text="Upload"
+            android:textSize="12sp"
+            android:textColor="@color/white"
+            app:cornerRadius="20dp"
+            app:icon="@drawable/ic_upload"
+            app:iconTint="@color/white" />
+    </LinearLayout>
+</RelativeLayout>

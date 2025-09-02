@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/historico_item_background"
+    android:elevation="4dp">
+
+    <!-- Ícone de status -->
+    <ImageView
+        android:id="@+id/iconStatus"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_warning"
+        android:contentDescription="@string/status"
+        android:layout_gravity="center_vertical"
+        android:layout_marginEnd="12dp"
+        app:tint="@color/redAccent" />
+
+    <!-- Conteúdo -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_weight="1">
+
+        <!-- Título do registro -->
+        <TextView
+            android:id="@+id/tvTituloRegistro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Título do Registro"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:ellipsize="end"
+            android:singleLine="true" />
+
+        <!-- Status (Concluído ou Pendente) -->
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pendente"
+            android:textSize="14sp"
+            android:textColor="@color/redAccent"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+</LinearLayout>

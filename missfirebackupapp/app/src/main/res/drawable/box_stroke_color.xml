@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Ativo -->
+    <item android:color="@color/white" android:state_focused="true"/>
+    <item android:color="@color/white" android:state_activated="true"/>
+    <!-- Padrão -->
+    <item android:color="@color/redAccent"/>
+</selector>

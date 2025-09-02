@@ -1,0 +1,10 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme -->
+    <style name="Theme.MissfireBackupApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/redAccent</item>
+        <item name="colorPrimaryVariant">@color/redAccent</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="android:statusBarColor">@color/backgroundDark</item>
+        <item name="android:windowBackground">@color/backgroundDark</item>
+    </style>
+</resources>

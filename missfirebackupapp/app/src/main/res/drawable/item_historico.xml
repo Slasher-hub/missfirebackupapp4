@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="12dp"
+    android:background="@drawable/item_background_selector"
+    android:layout_marginBottom="8dp">
+
+    <!-- Ícone de alerta -->
+    <ImageView
+        android:id="@+id/iconStatus"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_warning"
+        android:tint="@color/redAccent"
+        android:visibility="gone"
+        android:layout_marginEnd="12dp" />
+
+    <!-- Texto do registro -->
+    <TextView
+        android:id="@+id/tvTituloRegistro"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Registro de Backup #123"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <!-- Status -->
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pendente"
+        android:textColor="@color/redAccent"
+        android:textSize="12sp" />
+</LinearLayout>
