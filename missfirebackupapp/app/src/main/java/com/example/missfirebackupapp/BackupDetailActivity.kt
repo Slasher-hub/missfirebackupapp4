@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.missfirebackupapp.data.FotoEntity
 import android.view.View
+import java.util.Locale
 import java.util.Calendar
 
 class BackupDetailActivity : AppCompatActivity() {

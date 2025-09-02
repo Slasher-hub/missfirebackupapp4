@@ -5,4 +5,9 @@
         android:title="@string/sair"
         android:icon="@drawable/ic_logout"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_filter"
+        android:title="Filtrar"
+        android:icon="@drawable/ic_filter_list"
+        app:showAsAction="ifRoom" />
 </menu>

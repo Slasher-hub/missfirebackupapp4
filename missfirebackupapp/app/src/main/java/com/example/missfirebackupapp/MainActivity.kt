@@ -183,10 +183,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.top_app_bar_menu, menu)
-        // Adicionamos dinamicamente item de filtro se não existir
-        if (menu?.findItem(R.id.action_filter) == null) {
-            menu?.add(0, R.id.action_filter, 0, "Filtrar")?.setIcon(R.drawable.ic_filter_list)?.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
-        }
         return true
     }
 
