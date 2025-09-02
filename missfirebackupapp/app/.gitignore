@@ -1,0 +1,45 @@
+# Gradle
+.gradle/
+build/
+**/build/
+gradle-app.setting
+
+# Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea/caches
+.idea/libraries
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+
+# Logs
+*.log
+
+# Local properties
+local.properties
+
+# Google Services
+google-services.json
+
+# APKs
+*.apk
+*.ap_
+*.aab
+
+# Misc
+.DS_Store
+Thumbs.db
+
+# Keystore
+*.jks
+*.keystore
+
+# Capturas de teste
+captures/
+
+# Cache de Gradle
+/build
