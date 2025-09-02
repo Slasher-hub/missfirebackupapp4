@@ -65,7 +65,6 @@ class BackupDetailActivity : AppCompatActivity() {
     val btnSalvar = findViewById<Button>(R.id.btnSalvarEdicao)
         val btnFinalizar = findViewById<Button>(R.id.btnFinalizar)
     val containerFotos = findViewById<LinearLayout>(R.id.containerFotosDetail)
-    val tvFotosTitulo = findViewById<TextView>(R.id.tvFotosTituloDetail)
 
         fun setAdapter(v: AutoCompleteTextView, list: List<String>) {
             v.setAdapter(ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, list))
@@ -155,7 +154,7 @@ class BackupDetailActivity : AppCompatActivity() {
                     }
                 }
                 // Render fotos e coordenadas
-                renderFotos(containerFotos, tvFotosTitulo, fotosList)
+                renderFotos(containerFotos, fotosList)
             }
         }
 
@@ -266,9 +265,8 @@ class BackupDetailActivity : AppCompatActivity() {
 
     // Upload now handled by SyncManager
 
-    private fun renderFotos(container: LinearLayout?, titulo: TextView?, fotos: List<FotoEntity>) {
-        if (container == null || titulo == null) return
-        titulo.text = "Fotos (${fotos.size})"
+    private fun renderFotos(container: LinearLayout?, fotos: List<FotoEntity>) {
+        if (container == null) return
         container.removeAllViews()
         if (fotos.isEmpty()) {
             val tv = TextView(this).apply {

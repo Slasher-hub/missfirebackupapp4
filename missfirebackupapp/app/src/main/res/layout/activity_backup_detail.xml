@@ -44,14 +44,6 @@
 
             <Space android:layout_width="match_parent" android:layout_height="24dp" />
 
-            <TextView
-                android:id="@+id/tvFotosTituloDetail"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Fotos"
-                android:textStyle="bold"
-                android:textColor="@color/white" />
-
             <LinearLayout
                 android:id="@+id/containerFotosDetail"
                 android:layout_width="match_parent"
