@@ -33,6 +33,22 @@
             android:textColor="@color/white"
             android:textSize="18sp"
             android:textStyle="bold" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/btnSistemaCoord"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:background="@drawable/rounded_gray_button"
+            android:text="Sistema Coord"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp" />
     </LinearLayout>
 
     <!-- Botões principais -->

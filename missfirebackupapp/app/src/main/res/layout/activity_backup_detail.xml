@@ -1,16 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/backgroundDark">
 
-    <!-- Área de rolagem para os campos -->
     <ScrollView
-        android:id="@+id/scrollContent"
+        android:id="@+id/scrollDetail"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/actionButtons"
+        android:layout_above="@+id/actionButtonsDetail"
         android:padding="24dp">
 
         <LinearLayout
@@ -18,24 +17,36 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Toolbar -->
             <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/topAppBarBackup"
+                android:id="@+id/topAppBarDetail"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="@color/redAccent"
-                app:title="@string/registrar_backup"
+                app:title="Detalhar Backup"
                 app:titleTextColor="@color/white"
                 app:navigationIcon="@drawable/ic_arrow_back"
                 app:navigationIconTint="@color/white" />
 
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <TextView
+                android:id="@+id/tvStatusAtual"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Status: INCOMPLETO"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
+
+            <Space android:layout_width="match_parent" android:layout_height="16dp" />
+
+            <!-- Inclui somente o formulário compartilhado -->
             <include layout="@layout/layout_backup_form" />
+
         </LinearLayout>
     </ScrollView>
 
-    <!-- Barra fixa com botões -->
     <LinearLayout
-        android:id="@+id/actionButtons"
+        android:id="@+id/actionButtonsDetail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -44,26 +55,8 @@
         android:padding="8dp"
         android:background="@color/backgroundDark">
 
-        <!-- Botão Foto -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnFoto"
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:backgroundTint="@color/redAccent"
-            android:text="Foto"
-            android:textSize="12sp"
-            android:textColor="@color/white"
-            app:cornerRadius="20dp"
-            app:icon="@drawable/ic_camera"
-            app:iconTint="@color/white" />
-
-        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
-
-        <!-- Botão Salvar -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSalvarLocal"
+            android:id="@+id/btnSalvarEdicao"
             style="@style/Widget.MaterialComponents.Button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -76,5 +69,20 @@
             app:icon="@drawable/ic_save"
             app:iconTint="@color/white" />
 
+        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFinalizar"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="@color/redAccent"
+            android:text="Finalizar"
+            android:textSize="12sp"
+            android:textColor="@color/white"
+            app:cornerRadius="20dp"
+            app:icon="@drawable/ic_save"
+            app:iconTint="@color/white" />
     </LinearLayout>
 </RelativeLayout>

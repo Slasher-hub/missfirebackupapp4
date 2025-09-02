@@ -13,6 +13,33 @@ class BackupRepository(private val backupDao: BackupDao) {
         return backupDao.getAllBackups()
     }
 
+    suspend fun getBackupById(id: Int): BackupEntity? = backupDao.getBackupById(id)
+
+    suspend fun updateStatus(id: Int, status: String): Int = backupDao.updateStatus(id, status)
+
+    suspend fun updateFull(backup: BackupEntity): Int = backupDao.updateFull(
+        id = backup.id,
+        data = backup.data,
+        unidade = backup.unidade,
+        cava = backup.cava,
+        banco = backup.banco,
+        fogoId = backup.fogoId,
+        furoNumero = backup.furoNumero,
+        detonadorNumero = backup.detonadorNumero,
+        espoletaId = backup.espoletaId,
+        motivo = backup.motivo,
+        tipoDetonador = backup.tipoDetonador,
+        caboDetonador = backup.caboDetonador,
+        metragem = backup.metragem,
+        tentativaRecuperacao = backup.tentativaRecuperacao,
+        coordenadaX = backup.coordenadaX,
+        coordenadaY = backup.coordenadaY,
+        coordenadaZ = backup.coordenadaZ,
+    sistemaCoordenadas = backup.sistemaCoordenadas,
+    status = backup.status,
+        syncError = backup.syncError
+    )
+
     suspend fun clearAll(): Int {
         return backupDao.clearAll()
     }
@@ -25,6 +52,10 @@ class BackupRepository(private val backupDao: BackupDao) {
     fun getFotosByBackupId(backupId: Long): Flow<List<FotoEntity>> {
         return backupDao.getFotosByBackupId(backupId)
     }
+
+    suspend fun getFotosListByBackupId(backupId: Int): List<FotoEntity> = backupDao.getFotosListByBackupId(backupId)
+
+    suspend fun updateFotoRemoteUrl(fotoId: Int, remoteUrl: String) = backupDao.updateFotoRemoteUrl(fotoId, remoteUrl)
 
     suspend fun deleteFoto(fotoId: Long): Int {
         return backupDao.deleteFoto(fotoId)

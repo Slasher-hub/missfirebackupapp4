@@ -6,8 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [BackupEntity::class, FotoEntity::class], // Agora temos duas tabelas
-    version = 2, // ✅ Atualize a versão do banco
+    entities = [BackupEntity::class, FotoEntity::class],
+    version = 6,
     exportSchema = false
 )
 abstract class BackupDatabase : RoomDatabase() {
@@ -25,7 +25,8 @@ abstract class BackupDatabase : RoomDatabase() {
                     BackupDatabase::class.java,
                     "backup_database"
                 )
-                    .fallbackToDestructiveMigration(false) // ✅ Recria DB se houver mudança de schema
+                    // Durante desenvolvimento usamos destructive migration; planejar migration real depois.
+                    .fallbackToDestructiveMigration(true)
                     .build()
                 INSTANCE = instance
                 instance

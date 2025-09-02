@@ -49,4 +49,17 @@
             android:textColor="@color/redAccent"
             android:layout_marginTop="4dp" />
     </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btnSync"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:backgroundTint="@android:color/transparent"
+        android:background="@android:color/transparent"
+        android:padding="4dp"
+        android:scaleType="centerInside"
+        android:contentDescription="@string/status"
+        android:src="@drawable/ic_sync"
+        app:tint="@color/white"
+        android:visibility="gone"/>
 </LinearLayout>

@@ -29,16 +29,25 @@ android {
         }
     }
 
+    // Java/Kotlin 17 required for Android Gradle Plugin 8.10.x
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // Prefer explicit JVM target 17 for Kotlin compiler
     kotlin {
         compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
+
+    // (Optional) Enforce Java toolchain – uncomment if local JAVA_HOME points to older JDK
+    // java {
+    //     toolchain {
+    //         languageVersion.set(JavaLanguageVersion.of(17))
+    //     }
+    // }
 }
 
 dependencies {
@@ -63,6 +72,8 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    // Necessário para usar Task.await() (Firebase + coroutines)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
     // Testes
     testImplementation("junit:junit:4.13.2")

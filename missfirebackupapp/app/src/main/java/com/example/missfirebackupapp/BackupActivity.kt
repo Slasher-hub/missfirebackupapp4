@@ -2,11 +2,8 @@ package com.example.missfirebackupapp
 
 import android.Manifest
 import android.app.DatePickerDialog
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -18,9 +15,11 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.textfield.TextInputEditText
+import com.example.missfirebackupapp.util.CoordinateUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.*
 
 class BackupActivity : AppCompatActivity() {
@@ -31,12 +30,48 @@ class BackupActivity : AppCompatActivity() {
     private var currentPhotoPath: String? = null
     private var currentLatitude: Double? = null
     private var currentLongitude: Double? = null
+    private var currentAltitude: Double? = null
+    private var pendingPhoto: PendingPhoto? = null
+    private var lastBackupId: Long? = null
+
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+
+    private data class PendingPhoto(
+        val path: String,
+        val latitude: Double?,
+        val longitude: Double?,
+        val timestamp: String
+    )
+
+    // Launcher para permissões (câmera + localização) - usado se não já concedidas
+    private val permissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { /* No-op: checaremos depois */ }
+
+    // Launcher para captura de foto
+    private val takePictureLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && currentPhotoPath != null) {
+            val ts = dateFormat.format(Date())
+            pendingPhoto = PendingPhoto(
+                path = currentPhotoPath!!,
+                latitude = currentLatitude,
+                longitude = currentLongitude,
+                timestamp = ts
+            )
+            Toast.makeText(this, "Foto capturada", Toast.LENGTH_SHORT).show()
+        } else {
+            currentPhotoPath = null
+            Toast.makeText(this, "Captura cancelada", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_backup)
 
-        // ✅ Banco e Repositório
+    // ✅ Banco e Repositório
         val dao = BackupDatabase.getDatabase(this).backupDao()
         repository = BackupRepository(dao)
 
@@ -66,6 +101,19 @@ class BackupActivity : AppCompatActivity() {
         val inputX = findViewById<TextInputEditText>(R.id.inputCoordenadaX)
         val inputY = findViewById<TextInputEditText>(R.id.inputCoordenadaY)
         val inputZ = findViewById<TextInputEditText>(R.id.inputCoordenadaZ)
+        val tvStatusCoordenadas = findViewById<TextView>(R.id.tvStatusCoordenadas)
+    val prefs = getSharedPreferences("prefs", MODE_PRIVATE)
+    val sistemaPreferido = { prefs.getString("coordSystem", "WGS84") ?: "WGS84" }
+
+        fun setManualCoordinatesEnabled(enabled: Boolean) {
+            inputX.isEnabled = enabled
+            inputY.isEnabled = enabled
+            inputZ.isEnabled = enabled
+        }
+
+        // Inicialmente usuário não deve editar manualmente até tentar capturar a foto
+        setManualCoordinatesEnabled(false)
+        tvStatusCoordenadas?.text = "Coordenadas: Aguardando captura da foto"
 
         // ✅ Configuração das listas suspensas
         val motivos = listOf(
@@ -159,7 +207,7 @@ class BackupActivity : AppCompatActivity() {
         setAdapter(inputMetragem, metragens)
         setAdapter(inputRecuperacao, recuperacao)
 
-        // ✅ DatePicker para campo de data
+    // ✅ DatePicker para campo de data
         inputData.setOnClickListener {
             val calendar = Calendar.getInstance()
             val year = calendar.get(Calendar.YEAR)
@@ -173,25 +221,85 @@ class BackupActivity : AppCompatActivity() {
             datePicker.show()
         }
 
+        // ✅ Rascunho (draft) - restaurar valores salvos antes de permissões
+        val draft = getSharedPreferences("draft", MODE_PRIVATE)
+        fun restoreDraft() {
+            inputData.setText(draft.getString("data", ""))
+            inputUnidade.setText(draft.getString("unidade", ""), false)
+            inputCava.setText(draft.getString("cava", ""))
+            inputBanco.setText(draft.getString("banco", ""))
+            inputFogo.setText(draft.getString("fogo", ""))
+            inputFuro.setText(draft.getString("furo", ""))
+            inputDetonador.setText(draft.getString("detonador", ""))
+            inputEspoleta.setText(draft.getString("espoleta", ""))
+            inputMotivo.setText(draft.getString("motivo", ""), false)
+            inputTipoDetonador.setText(draft.getString("tipoDetonador", ""), false)
+            inputCaboDetonador.setText(draft.getString("caboDetonador", ""), false)
+            inputMetragem.setText(draft.getString("metragem", ""), false)
+            inputRecuperacao.setText(draft.getString("recuperacao", ""), false)
+            inputX.setText(draft.getString("x", ""))
+            inputY.setText(draft.getString("y", ""))
+            inputZ.setText(draft.getString("z", ""))
+        }
+        restoreDraft()
+
+        fun saveDraft() {
+            draft.edit()
+                .putString("data", inputData.text.toString())
+                .putString("unidade", inputUnidade.text.toString())
+                .putString("cava", inputCava.text.toString())
+                .putString("banco", inputBanco.text.toString())
+                .putString("fogo", inputFogo.text.toString())
+                .putString("furo", inputFuro.text.toString())
+                .putString("detonador", inputDetonador.text.toString())
+                .putString("espoleta", inputEspoleta.text.toString())
+                .putString("motivo", inputMotivo.text.toString())
+                .putString("tipoDetonador", inputTipoDetonador.text.toString())
+                .putString("caboDetonador", inputCaboDetonador.text.toString())
+                .putString("metragem", inputMetragem.text.toString())
+                .putString("recuperacao", inputRecuperacao.text.toString())
+                .putString("x", inputX.text.toString())
+                .putString("y", inputY.text.toString())
+                .putString("z", inputZ.text.toString())
+                .apply()
+        }
+
+        // Listener genérico simples (poderia otimizar com TextWatcher único)
+        listOf(
+            inputData,inputUnidade,inputCava,inputBanco,inputFogo,inputFuro,inputDetonador,inputEspoleta,
+            inputMotivo,inputTipoDetonador,inputCaboDetonador,inputMetragem,inputRecuperacao,inputX,inputY,inputZ
+        ).forEach { v -> v.setOnFocusChangeListener { _, _ -> saveDraft() } }
+
+        // Garantir permissões no início desta Activity (já deveriam ter sido solicitadas na app, reforço)
+        ensurePermissions()
+
         // ✅ Botão Foto
         val btnFoto = findViewById<Button>(R.id.btnFoto)
-        btnFoto.setOnClickListener {
+    btnFoto.setOnClickListener {
             if (checkPermissions()) {
-                openCamera()
                 getCurrentLocation()
+                launchCamera()
+                // Após iniciar processo de foto aguardamos callback para definir status
+        tvStatusCoordenadas?.text = "Coordenadas: capturando... (${sistemaPreferido()})"
             } else {
-                requestPermissions(
-                    arrayOf(
-                        Manifest.permission.CAMERA,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ), 100
-                )
+                ensurePermissions()
             }
         }
 
         // ✅ Botão Salvar Localmente
         val btnSalvar = findViewById<Button>(R.id.btnSalvarLocal)
         btnSalvar.setOnClickListener {
+            // Validação mínima
+            if (inputData.text.isNullOrBlank() || inputUnidade.text.isNullOrBlank() || inputCava.text.isNullOrBlank()) {
+                Toast.makeText(this, "Preencha Data, Unidade e Cava", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            if (pendingPhoto == null) {
+                Toast.makeText(this, "Capture a foto antes de salvar", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val (x,y,z, sistema) = buildCoordinatesForStorage(inputX,inputY,inputZ)
             val backup = BackupEntity(
                 data = inputData.text.toString(),
                 unidade = inputUnidade.text.toString(),
@@ -206,51 +314,64 @@ class BackupActivity : AppCompatActivity() {
                 caboDetonador = inputCaboDetonador.text.toString(),
                 metragem = inputMetragem.text.toString(),
                 tentativaRecuperacao = inputRecuperacao.text.toString(),
-                coordenadaX = inputX.text.toString().toDoubleOrNull() ?: 0.0,
-                coordenadaY = inputY.text.toString().toDoubleOrNull() ?: 0.0,
-                coordenadaZ = inputZ.text.toString().toDoubleOrNull() ?: 0.0
+                coordenadaX = x,
+                coordenadaY = y,
+                coordenadaZ = z,
+                sistemaCoordenadas = sistema,
+                status = "INCOMPLETO"
             )
 
-            if (inputData.text.isNullOrEmpty() || inputUnidade.text.isNullOrEmpty() || inputCava.text.isNullOrEmpty()) {
-                Toast.makeText(this, "Preencha todos os campos obrigatórios", Toast.LENGTH_SHORT)
-                    .show()
-                return@setOnClickListener
-            }
-
             lifecycleScope.launch(Dispatchers.IO) {
-                repository.insertBackup(backup)
+                val newId = repository.insertBackup(backup)
+                lastBackupId = newId
+                // Salvar foto pendente agora vinculada
+                pendingPhoto?.let { p ->
+                    val foto = FotoEntity(
+                        backupId = newId.toInt(),
+                        caminhoFoto = p.path,
+                        latitude = p.latitude,
+                        longitude = p.longitude,
+                        dataHora = p.timestamp
+                    )
+                    repository.insertFoto(foto)
+                }
+                pendingPhoto = null
                 runOnUiThread {
-                    Toast.makeText(
-                        this@BackupActivity,
-                        "Backup salvo localmente!",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(this@BackupActivity, "Backup criado (#$newId)", Toast.LENGTH_SHORT).show()
+                    resetForm(
+                        inputData, inputUnidade, inputCava, inputBanco, inputFogo, inputFuro,
+                        inputDetonador, inputEspoleta, inputMotivo, inputTipoDetonador,
+                        inputCaboDetonador, inputMetragem, inputRecuperacao, inputX, inputY, inputZ
+                    )
+                    // Limpa rascunho após salvar
+                    draft.edit().clear().apply()
                 }
             }
         }
     }
 
-    // ✅ Verifica permissões
-    private fun checkPermissions(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.CAMERA
-        ) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
+    private fun ensurePermissions() {
+        if (!checkPermissions()) {
+            permissionsLauncher.launch(
+                arrayOf(
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
     }
 
-    // ✅ Abrir câmera
-    private fun openCamera() {
+    private fun checkPermissions(): Boolean = listOf(
+        Manifest.permission.CAMERA,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    ).all { perm -> ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED }
+
+    private fun launchCamera() {
         val photoFile = File.createTempFile("photo_${System.currentTimeMillis()}", ".jpg", cacheDir)
         currentPhotoPath = photoFile.absolutePath
-
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        val photoUri = FileProvider.getUriForFile(this, "$packageName.fileprovider", photoFile)
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
-        startActivityForResult(intent, 101)
+        val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", photoFile)
+        takePictureLauncher.launch(uri)
     }
 
     // ✅ Pegar localização
@@ -260,6 +381,14 @@ class BackupActivity : AppCompatActivity() {
                 if (location != null) {
                     currentLatitude = location.latitude
                     currentLongitude = location.longitude
+                    currentAltitude = location.altitude
+                    updateCoordinateDisplay()
+                } else {
+                    findViewById<TextView>(R.id.tvStatusCoordenadas)?.text = "Coordenadas: não obtidas - preencha manualmente"
+                    // Permitir edição manual
+                    findViewById<TextInputEditText>(R.id.inputCoordenadaX)?.isEnabled = true
+                    findViewById<TextInputEditText>(R.id.inputCoordenadaY)?.isEnabled = true
+                    findViewById<TextInputEditText>(R.id.inputCoordenadaZ)?.isEnabled = true
                 }
             }
         } catch (e: SecurityException) {
@@ -267,24 +396,68 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    // ✅ Recebe resultado da câmera
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == 101 && resultCode == RESULT_OK) {
-            val foto = FotoEntity(
-                backupId = backupIdCriado // ID retornado quando salvou o Backup ,
-                caminhoFoto = currentPhotoPath "",
-                latitude = currentLatitude ?: 0.0,
-                longitude = currentLongitude ?: 0.0,
-                dataHora = "" // Data/hora atual
-            )
-
-            lifecycleScope.launch(Dispatchers.IO) {
-                repository.insertFoto(foto)
+    private fun updateCoordinateDisplay() {
+        val tv = findViewById<TextView>(R.id.tvStatusCoordenadas) ?: return
+        val prefs = getSharedPreferences("prefs", MODE_PRIVATE)
+        val system = prefs.getString("coordSystem", "WGS84") ?: "WGS84"
+        val lat = currentLatitude
+        val lon = currentLongitude
+        if (lat != null && lon != null) {
+            val (x,y,zoneOrSys) = if (system.startsWith("WGS84")) {
+                Triple(lat, lon, "WGS84")
+            } else if (system.startsWith("SIRGAS2000") || system.startsWith("SAD69")) {
+                // Treat as UTM zone based on system suffix (e.g., SIRGAS2000-23S)
+                val (_, zonePart) = system.split('-', limit = 2).let { if (it.size==2) it[0] to it[1] else system to "23S" }
+                val (adjLat, adjLon) = CoordinateUtils.adjustDatum(lat, lon, system)
+                val (easting, northing, zone) = CoordinateUtils.wgs84ToUTM(adjLat, adjLon)
+                Triple(easting, northing, "$system")
+            } else {
+                Triple(lat, lon, system)
             }
-
-            Toast.makeText(this, "Foto salva com coordenadas!", Toast.LENGTH_SHORT).show()
+            tv.text = "Coordenadas: capturadas ($zoneOrSys)"
+            // Disable manual edits
+            findViewById<TextInputEditText>(R.id.inputCoordenadaX)?.apply { setText(String.format("%.3f", x)); isEnabled = false }
+            findViewById<TextInputEditText>(R.id.inputCoordenadaY)?.apply { setText(String.format("%.3f", y)); isEnabled = false }
+            findViewById<TextInputEditText>(R.id.inputCoordenadaZ)?.apply { setText(String.format("%.2f", currentAltitude ?: 0.0)); isEnabled = currentAltitude == null }
         }
+    }
+
+    private fun buildCoordinatesForStorage(xField: TextInputEditText, yField: TextInputEditText, zField: TextInputEditText): Quadruple {
+        val prefs = getSharedPreferences("prefs", MODE_PRIVATE)
+        val system = prefs.getString("coordSystem", "WGS84") ?: "WGS84"
+        val lat = currentLatitude
+        val lon = currentLongitude
+        return if (lat != null && lon != null) {
+            if (system == "WGS84") {
+                Quadruple(lat, lon, currentAltitude ?: 0.0, system)
+            } else if (system.startsWith("SIRGAS2000") || system.startsWith("SAD69")) {
+                val (adjLat, adjLon) = CoordinateUtils.adjustDatum(lat, lon, system)
+                val (easting, northing, _) = CoordinateUtils.wgs84ToUTM(adjLat, adjLon)
+                Quadruple(easting, northing, currentAltitude ?: 0.0, system)
+            } else {
+                Quadruple(lat, lon, currentAltitude ?: 0.0, system)
+            }
+        } else {
+            Quadruple(
+                xField.text.toString().toDoubleOrNull() ?: 0.0,
+                yField.text.toString().toDoubleOrNull() ?: 0.0,
+                zField.text.toString().toDoubleOrNull() ?: 0.0,
+                system
+            )
+        }
+    }
+
+    private data class Quadruple(val x: Double, val y: Double, val z: Double, val sistema: String)
+
+    private fun resetForm(vararg views: TextView) {
+        views.forEach { it.text = "" }
+        currentPhotoPath = null
+        currentLatitude = null
+        currentLongitude = null
+    currentAltitude = null
+        findViewById<TextView>(R.id.tvStatusCoordenadas)?.text = "Coordenadas: Aguardando captura da foto"
+        findViewById<TextInputEditText>(R.id.inputCoordenadaX)?.isEnabled = false
+        findViewById<TextInputEditText>(R.id.inputCoordenadaY)?.isEnabled = false
+        findViewById<TextInputEditText>(R.id.inputCoordenadaZ)?.isEnabled = false
     }
 }

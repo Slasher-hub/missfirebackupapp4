@@ -5,12 +5,34 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
+    private val permissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { /* ignorar resultado direto; checaremos conforme uso */ }
+
+    private fun ensureBasePermissions() {
+        val needed = mutableListOf<String>()
+        val perms = listOf(
+            Manifest.permission.CAMERA,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        perms.forEach { p ->
+            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
+                needed.add(p)
+            }
+        }
+        if (needed.isNotEmpty()) permissionsLauncher.launch(needed.toTypedArray())
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,8 +91,14 @@ class LoginActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         if (auth.currentUser != null) {
+            ensureBasePermissions()
             startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
+    }
+    override fun onResume() {
+        super.onResume()
+        // Solicita cedo se usuário ainda não deu (caso não estava logado em onStart)
+        ensureBasePermissions()
     }
 }
