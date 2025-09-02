@@ -16,6 +16,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.missfirebackupapp.data.FotoEntity
 import android.view.View
+import android.app.AlertDialog
+import android.widget.ImageView
+import android.graphics.BitmapFactory
 import java.util.Locale
 import java.util.Calendar
 
@@ -263,14 +266,65 @@ class BackupDetailActivity : AppCompatActivity() {
             return
         }
         fotos.forEachIndexed { index, f ->
-            val tv = TextView(this).apply {
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(0,8,0,8)
+            }
+            val thumb = ImageView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(120,120)
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                val path = f.caminhoFoto
+                if (!path.isNullOrBlank()) {
+                    val file = java.io.File(path)
+                    if (file.exists()) {
+                        val bm = BitmapFactory.decodeFile(file.absolutePath)
+                        setImageBitmap(bm)
+                    } else if (!f.remoteUrl.isNullOrBlank()) {
+                        // poderia carregar via lib externa; simples placeholder
+                        setImageResource(R.drawable.ic_camera)
+                    } else {
+                        setImageResource(R.drawable.ic_camera)
+                    }
+                } else setImageResource(R.drawable.ic_camera)
+                setOnClickListener { abrirPreviewFoto(f) }
+            }
+            val info = TextView(this).apply {
                 setTextColor(getColor(R.color.white))
                 textSize = 12f
                 text = "#${index+1} ${f.dataHora}\nLat:${f.latitude?.formatOrDash()} Lon:${f.longitude?.formatOrDash()} Alt:${f.altitude?.formatOrDash(2)} (${f.sistemaCoordenadas ?: "?"})"
-                setPadding(0,8,0,8)
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                setOnClickListener { abrirPreviewFoto(f) }
             }
-            container.addView(tv)
+            row.addView(thumb)
+            row.addView(info)
+            container.addView(row)
         }
+    }
+    private fun abrirPreviewFoto(foto: FotoEntity) {
+        val builder = AlertDialog.Builder(this)
+        val wrapper = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(32,32,32,32) }
+        val iv = ImageView(this).apply {
+            adjustViewBounds = true
+            val path = foto.caminhoFoto
+            if (!path.isNullOrBlank()) {
+                val file = java.io.File(path)
+                if (file.exists()) {
+                    val bm = BitmapFactory.decodeFile(file.absolutePath)
+                    setImageBitmap(bm)
+                } else setImageResource(R.drawable.ic_camera)
+            } else setImageResource(R.drawable.ic_camera)
+        }
+        val tv = TextView(this).apply {
+            setTextColor(getColor(R.color.white))
+            textSize = 12f
+            text = "Lat:${foto.latitude?.formatOrDash()} Lon:${foto.longitude?.formatOrDash()} Alt:${foto.altitude?.formatOrDash(2)} (${foto.sistemaCoordenadas ?: "?"})\n${foto.dataHora}"
+            setPadding(0,16,0,0)
+        }
+        wrapper.addView(iv)
+        wrapper.addView(tv)
+        builder.setView(wrapper)
+            .setPositiveButton("Fechar", null)
+            .show()
     }
     private fun Double?.formatOrDash(decimals: Int = 5): String = if (this == null) "-" else String.format(Locale.getDefault(), "% .${decimals}f", this)
 }

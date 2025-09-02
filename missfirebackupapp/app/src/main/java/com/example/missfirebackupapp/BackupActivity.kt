@@ -32,6 +32,7 @@ class BackupActivity : AppCompatActivity() {
     private var currentLongitude: Double? = null
     private var currentAltitude: Double? = null
     private val pendingPhotos = mutableListOf<PendingPhoto>()
+    private var selectedPhotoIndex: Int? = null // indice da foto cujas coordenadas estão aplicadas
     private var lastBackupId: Long? = null
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
@@ -290,7 +291,7 @@ class BackupActivity : AppCompatActivity() {
 
         // ✅ Botão Foto
         val btnFoto = findViewById<Button>(R.id.btnFoto)
-    btnFoto.setOnClickListener {
+        btnFoto.setOnClickListener {
             if (pendingPhotos.size >= 3) {
                 Toast.makeText(this, "Máximo de 3 fotos", Toast.LENGTH_SHORT).show(); return@setOnClickListener
             }
@@ -487,15 +488,73 @@ class BackupActivity : AppCompatActivity() {
         val titulo = findViewById<TextView>(R.id.tvFotosTitulo)
         titulo?.text = "Fotos (${pendingPhotos.size}/3)"
         container.removeAllViews()
+        val inflater = layoutInflater
         pendingPhotos.forEachIndexed { index, p ->
-            val tv = TextView(this).apply {
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(0,8,0,8)
+            }
+            val radio = RadioButton(this).apply {
+                isChecked = selectedPhotoIndex == index
+                setOnClickListener { aplicarCoordenadasFoto(index) }
+            }
+            val info = TextView(this).apply {
                 setTextColor(getColor(R.color.white))
                 textSize = 12f
                 text = "#${index+1} ${p.timestamp}\nLat:${p.latitude.formatOrDash()} Lon:${p.longitude.formatOrDash()} Alt:${p.altitude.formatOrDash(2)} (${p.sistema})"
-                setPadding(0,8,0,8)
+                setOnClickListener { aplicarCoordenadasFoto(index) }
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             }
-            container.addView(tv)
+            val btnDelete = ImageButton(this).apply {
+                setImageResource(R.drawable.ic_delete)
+                setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                setOnClickListener {
+                    pendingPhotos.removeAt(index)
+                    if (selectedPhotoIndex == index) {
+                        selectedPhotoIndex = null
+                        // limpar coordenadas? manter as atuais; não alteramos campos
+                    } else if (selectedPhotoIndex != null && selectedPhotoIndex!! > index) {
+                        selectedPhotoIndex = selectedPhotoIndex!! - 1
+                    }
+                    renderPendingPhotos()
+                }
+            }
+            row.addView(radio)
+            row.addView(info)
+            row.addView(btnDelete)
+            container.addView(row)
         }
+        // Desabilitar botao foto se limite
+        findViewById<Button>(R.id.btnFoto)?.isEnabled = pendingPhotos.size < 3
+    }
+
+    private fun aplicarCoordenadasFoto(index: Int) {
+        selectedPhotoIndex = index
+        val foto = pendingPhotos[index]
+        // Aplica as coordenadas brutas (lat/lon ou utm) nos campos X/Y/Z de acordo com sistema preferido atual
+        val prefs = getSharedPreferences("prefs", MODE_PRIVATE)
+        val system = prefs.getString("coordSystem", "WGS84") ?: "WGS84"
+        val inputX = findViewById<TextInputEditText>(R.id.inputCoordenadaX)
+        val inputY = findViewById<TextInputEditText>(R.id.inputCoordenadaY)
+        val inputZ = findViewById<TextInputEditText>(R.id.inputCoordenadaZ)
+        if (foto.latitude != null && foto.longitude != null) {
+            if (system == "WGS84") {
+                inputX?.setText(String.format(Locale.getDefault(),"%.5f", foto.latitude))
+                inputY?.setText(String.format(Locale.getDefault(),"%.5f", foto.longitude))
+                inputZ?.setText(String.format(Locale.getDefault(),"%.2f", foto.altitude ?: 0.0))
+            } else if (system.startsWith("SIRGAS2000") || system.startsWith("SAD69")) {
+                val (adjLat, adjLon) = CoordinateUtils.adjustDatum(foto.latitude, foto.longitude, system)
+                val (easting, northing, _) = CoordinateUtils.wgs84ToUTM(adjLat, adjLon)
+                inputX?.setText(String.format(Locale.getDefault(),"%.2f", easting))
+                inputY?.setText(String.format(Locale.getDefault(),"%.2f", northing))
+                inputZ?.setText(String.format(Locale.getDefault(),"%.2f", foto.altitude ?: 0.0))
+            } else {
+                inputX?.setText(String.format(Locale.getDefault(),"%.5f", foto.latitude))
+                inputY?.setText(String.format(Locale.getDefault(),"%.5f", foto.longitude))
+                inputZ?.setText(String.format(Locale.getDefault(),"%.2f", foto.altitude ?: 0.0))
+            }
+        }
+        renderPendingPhotos() // para atualizar radios
     }
     private fun Double?.formatOrDash(decimals: Int = 5): String = if (this == null) "-" else String.format(Locale.getDefault(), "% .${decimals}f", this)
 }
