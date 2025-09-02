@@ -301,28 +301,20 @@ class BackupDetailActivity : AppCompatActivity() {
         }
     }
     private fun abrirPreviewFoto(foto: FotoEntity) {
-        val builder = AlertDialog.Builder(this)
-        val wrapper = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(32,32,32,32) }
-        val iv = ImageView(this).apply {
-            adjustViewBounds = true
-            val path = foto.caminhoFoto
-            if (!path.isNullOrBlank()) {
-                val file = java.io.File(path)
-                if (file.exists()) {
-                    val bm = BitmapFactory.decodeFile(file.absolutePath)
-                    setImageBitmap(bm)
-                } else setImageResource(R.drawable.ic_camera)
-            } else setImageResource(R.drawable.ic_camera)
-        }
-        val tv = TextView(this).apply {
-            setTextColor(getColor(R.color.white))
-            textSize = 12f
-            text = "Lat:${foto.latitude?.formatOrDash()} Lon:${foto.longitude?.formatOrDash()} Alt:${foto.altitude?.formatOrDash(2)} (${foto.sistemaCoordenadas ?: "?"})\n${foto.dataHora}"
-            setPadding(0,16,0,0)
-        }
-        wrapper.addView(iv)
-        wrapper.addView(tv)
-        builder.setView(wrapper)
+        val view = layoutInflater.inflate(R.layout.dialog_photo_preview, null)
+        val iv = view.findViewById<ImageView>(R.id.imgPreview)
+        val tv = view.findViewById<TextView>(R.id.tvPreviewInfo)
+        val path = foto.caminhoFoto
+        if (!path.isNullOrBlank()) {
+            val file = java.io.File(path)
+            if (file.exists()) {
+                val bm = BitmapFactory.decodeFile(file.absolutePath)
+                iv.setImageBitmap(bm)
+            } else iv.setImageResource(R.drawable.ic_camera)
+        } else iv.setImageResource(R.drawable.ic_camera)
+        tv.text = "Lat:${foto.latitude?.formatOrDash()} Lon:${foto.longitude?.formatOrDash()} Alt:${foto.altitude?.formatOrDash(2)} (${foto.sistemaCoordenadas ?: "?"})\n${foto.dataHora}"
+        AlertDialog.Builder(this)
+            .setView(view)
             .setPositiveButton("Fechar", null)
             .show()
     }
