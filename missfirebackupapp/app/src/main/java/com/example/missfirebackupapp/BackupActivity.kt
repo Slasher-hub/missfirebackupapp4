@@ -31,7 +31,7 @@ class BackupActivity : AppCompatActivity() {
     private var currentLatitude: Double? = null
     private var currentLongitude: Double? = null
     private var currentAltitude: Double? = null
-    private var pendingPhoto: PendingPhoto? = null
+    private val pendingPhotos = mutableListOf<PendingPhoto>()
     private var lastBackupId: Long? = null
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
@@ -40,6 +40,8 @@ class BackupActivity : AppCompatActivity() {
         val path: String,
         val latitude: Double?,
         val longitude: Double?,
+        val altitude: Double?,
+        val sistema: String?,
         val timestamp: String
     )
 
@@ -53,14 +55,25 @@ class BackupActivity : AppCompatActivity() {
         ActivityResultContracts.TakePicture()
     ) { success ->
         if (success && currentPhotoPath != null) {
-            val ts = dateFormat.format(Date())
-            pendingPhoto = PendingPhoto(
-                path = currentPhotoPath!!,
-                latitude = currentLatitude,
-                longitude = currentLongitude,
-                timestamp = ts
-            )
-            Toast.makeText(this, "Foto capturada", Toast.LENGTH_SHORT).show()
+            if (pendingPhotos.size >= 3) {
+                Toast.makeText(this, "Limite de 3 fotos atingido", Toast.LENGTH_SHORT).show()
+            } else {
+                val ts = dateFormat.format(Date())
+                val sistema = getSharedPreferences("prefs", MODE_PRIVATE).getString("coordSystem", "WGS84")
+                pendingPhotos.add(
+                    PendingPhoto(
+                        path = currentPhotoPath!!,
+                        latitude = currentLatitude,
+                        longitude = currentLongitude,
+                        altitude = currentAltitude,
+                        sistema = sistema,
+                        timestamp = ts
+                    )
+                )
+                Toast.makeText(this, "Foto ${pendingPhotos.size}/3 capturada", Toast.LENGTH_SHORT).show()
+                renderPendingPhotos()
+            }
+            currentPhotoPath = null
         } else {
             currentPhotoPath = null
             Toast.makeText(this, "Captura cancelada", Toast.LENGTH_SHORT).show()
@@ -100,7 +113,9 @@ class BackupActivity : AppCompatActivity() {
         val inputRecuperacao = findViewById<AutoCompleteTextView>(R.id.inputRecuperacao)
         val inputX = findViewById<TextInputEditText>(R.id.inputCoordenadaX)
         val inputY = findViewById<TextInputEditText>(R.id.inputCoordenadaY)
-        val inputZ = findViewById<TextInputEditText>(R.id.inputCoordenadaZ)
+    val inputZ = findViewById<TextInputEditText>(R.id.inputCoordenadaZ)
+    val containerFotos = findViewById<LinearLayout>(R.id.containerFotos)
+    val tvFotosTitulo = findViewById<TextView>(R.id.tvFotosTitulo)
         val tvStatusCoordenadas = findViewById<TextView>(R.id.tvStatusCoordenadas)
     val prefs = getSharedPreferences("prefs", MODE_PRIVATE)
     val sistemaPreferido = { prefs.getString("coordSystem", "WGS84") ?: "WGS84" }
@@ -276,11 +291,13 @@ class BackupActivity : AppCompatActivity() {
         // ✅ Botão Foto
         val btnFoto = findViewById<Button>(R.id.btnFoto)
     btnFoto.setOnClickListener {
+            if (pendingPhotos.size >= 3) {
+                Toast.makeText(this, "Máximo de 3 fotos", Toast.LENGTH_SHORT).show(); return@setOnClickListener
+            }
             if (checkPermissions()) {
                 getCurrentLocation()
                 launchCamera()
-                // Após iniciar processo de foto aguardamos callback para definir status
-        tvStatusCoordenadas?.text = "Coordenadas: capturando... (${sistemaPreferido()})"
+                tvStatusCoordenadas?.text = "Coordenadas: capturando... (${sistemaPreferido()})"
             } else {
                 ensurePermissions()
             }
@@ -294,8 +311,8 @@ class BackupActivity : AppCompatActivity() {
                 Toast.makeText(this, "Preencha Data, Unidade e Cava", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            if (pendingPhoto == null) {
-                Toast.makeText(this, "Capture a foto antes de salvar", Toast.LENGTH_SHORT).show()
+            if (pendingPhotos.isEmpty()) {
+                Toast.makeText(this, "Capture pelo menos 1 foto", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -324,18 +341,20 @@ class BackupActivity : AppCompatActivity() {
             lifecycleScope.launch(Dispatchers.IO) {
                 val newId = repository.insertBackup(backup)
                 lastBackupId = newId
-                // Salvar foto pendente agora vinculada
-                pendingPhoto?.let { p ->
+                // Salvar fotos pendentes agora vinculadas
+                pendingPhotos.forEach { p ->
                     val foto = FotoEntity(
                         backupId = newId.toInt(),
                         caminhoFoto = p.path,
                         latitude = p.latitude,
                         longitude = p.longitude,
+                        altitude = p.altitude,
+                        sistemaCoordenadas = p.sistema,
                         dataHora = p.timestamp
                     )
                     repository.insertFoto(foto)
                 }
-                pendingPhoto = null
+                pendingPhotos.clear()
                 runOnUiThread {
                     Toast.makeText(this@BackupActivity, "Backup criado (#$newId)", Toast.LENGTH_SHORT).show()
                     resetForm(
@@ -455,9 +474,28 @@ class BackupActivity : AppCompatActivity() {
         currentLatitude = null
         currentLongitude = null
     currentAltitude = null
+        pendingPhotos.clear()
+        renderPendingPhotos()
         findViewById<TextView>(R.id.tvStatusCoordenadas)?.text = "Coordenadas: Aguardando captura da foto"
         findViewById<TextInputEditText>(R.id.inputCoordenadaX)?.isEnabled = false
         findViewById<TextInputEditText>(R.id.inputCoordenadaY)?.isEnabled = false
         findViewById<TextInputEditText>(R.id.inputCoordenadaZ)?.isEnabled = false
     }
+
+    private fun renderPendingPhotos() {
+        val container = findViewById<LinearLayout>(R.id.containerFotos) ?: return
+        val titulo = findViewById<TextView>(R.id.tvFotosTitulo)
+        titulo?.text = "Fotos (${pendingPhotos.size}/3)"
+        container.removeAllViews()
+        pendingPhotos.forEachIndexed { index, p ->
+            val tv = TextView(this).apply {
+                setTextColor(getColor(R.color.white))
+                textSize = 12f
+                text = "#${index+1} ${p.timestamp}\nLat:${p.latitude.formatOrDash()} Lon:${p.longitude.formatOrDash()} Alt:${p.altitude.formatOrDash(2)} (${p.sistema})"
+                setPadding(0,8,0,8)
+            }
+            container.addView(tv)
+        }
+    }
+    private fun Double?.formatOrDash(decimals: Int = 5): String = if (this == null) "-" else String.format(Locale.getDefault(), "% .${decimals}f", this)
 }

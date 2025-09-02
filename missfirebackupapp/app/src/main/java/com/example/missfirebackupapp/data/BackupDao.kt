@@ -59,6 +59,9 @@ interface BackupDao {
     @Query("SELECT * FROM foto_table WHERE backupId = :backupId")
     suspend fun getFotosListByBackupId(backupId: Int): List<FotoEntity>
 
+        @Query("SELECT * FROM foto_table WHERE backupId = :backupId ORDER BY id ASC")
+        suspend fun getFotosListByBackupId(backupId: Long): List<FotoEntity>
+
     @Query("UPDATE foto_table SET remoteUrl = :remoteUrl WHERE id = :fotoId")
     suspend fun updateFotoRemoteUrl(fotoId: Int, remoteUrl: String): Int
 

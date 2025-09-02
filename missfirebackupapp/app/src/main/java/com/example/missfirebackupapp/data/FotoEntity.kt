@@ -26,5 +26,7 @@ data class FotoEntity(
     val remoteUrl: String? = null, // URL no Firebase Storage (preenchido após upload)
     val latitude: Double?,       // Coordenada latitude
     val longitude: Double?,      // Coordenada longitude
+    val altitude: Double? = null, // Altitude (se disponível)
+    val sistemaCoordenadas: String? = null, // Sistema/datum usado na captura
     val dataHora: String         // Data/hora em que a foto foi tirada
 )

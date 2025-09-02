@@ -14,6 +14,8 @@ import com.example.missfirebackupapp.SyncManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.example.missfirebackupapp.data.FotoEntity
+import android.view.View
 import java.util.Calendar
 
 class BackupDetailActivity : AppCompatActivity() {
@@ -56,8 +58,10 @@ class BackupDetailActivity : AppCompatActivity() {
         val inputY = findViewById<TextInputEditText>(R.id.inputCoordenadaY)
         val inputZ = findViewById<TextInputEditText>(R.id.inputCoordenadaZ)
 
-        val btnSalvar = findViewById<Button>(R.id.btnSalvarEdicao)
+    val btnSalvar = findViewById<Button>(R.id.btnSalvarEdicao)
         val btnFinalizar = findViewById<Button>(R.id.btnFinalizar)
+    val containerFotos = findViewById<LinearLayout>(R.id.containerFotosDetail)
+    val tvFotosTitulo = findViewById<TextView>(R.id.tvFotosTituloDetail)
 
         fun setAdapter(v: AutoCompleteTextView, list: List<String>) {
             v.setAdapter(ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, list))
@@ -102,6 +106,9 @@ class BackupDetailActivity : AppCompatActivity() {
         // Load data
         lifecycleScope.launch(Dispatchers.IO) {
             current = repository.getBackupById(backupId)
+            // Carregar fotos relacionadas
+            val fotosDao = BackupDatabase.getDatabase(this@BackupDetailActivity).backupDao()
+            val fotosList = fotosDao.getFotosListByBackupId(backupId)
             val b = current
             withContext(Dispatchers.Main) {
                 if (b == null) {
@@ -137,6 +144,8 @@ class BackupDetailActivity : AppCompatActivity() {
                     }
                 }
                 if (b.status == "PRONTO") lockFields()
+                // Render fotos e coordenadas
+                renderFotos(containerFotos, tvFotosTitulo, fotosList)
             }
         }
 
@@ -239,4 +248,28 @@ class BackupDetailActivity : AppCompatActivity() {
     }
 
     // Upload now handled by SyncManager
+
+    private fun renderFotos(container: LinearLayout?, titulo: TextView?, fotos: List<FotoEntity>) {
+        if (container == null || titulo == null) return
+        titulo.text = "Fotos (${fotos.size})"
+        container.removeAllViews()
+        if (fotos.isEmpty()) {
+            val tv = TextView(this).apply {
+                text = "Nenhuma foto"
+                setTextColor(getColor(R.color.white))
+            }
+            container.addView(tv)
+            return
+        }
+        fotos.forEachIndexed { index, f ->
+            val tv = TextView(this).apply {
+                setTextColor(getColor(R.color.white))
+                textSize = 12f
+                text = "#${index+1} ${f.dataHora}\nLat:${f.latitude?.formatOrDash()} Lon:${f.longitude?.formatOrDash()} Alt:${f.altitude?.formatOrDash(2)} (${f.sistemaCoordenadas ?: "?"})"
+                setPadding(0,8,0,8)
+            }
+            container.addView(tv)
+        }
+    }
+    private fun Double?.formatOrDash(decimals: Int = 5): String = if (this == null) "-" else String.format(Locale.getDefault(), "% .${decimals}f", this)
 }

@@ -479,4 +479,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <Space android:layout_width="match_parent" android:layout_height="24dp" />
+
+    <!-- Seção Fotos (até 3) -->
+    <TextView
+        android:id="@+id/tvFotosTitulo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fotos (0/3)"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:textSize="14sp" />
+
+    <LinearLayout
+        android:id="@+id/containerFotos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="8dp" />
+
 </LinearLayout>

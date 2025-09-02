@@ -42,27 +42,37 @@ object SyncManager {
             // Upload de todas as fotos locais sem remoteUrl
             val dao = withContext(Dispatchers.IO) { BackupDatabase.getDatabase(context).backupDao() }
             val fotos = withContext(Dispatchers.IO) { dao.getFotosListByBackupId(entity.id) }
-            val photoUrls = mutableListOf<String>()
+            val photoUrls = mutableListOf<String>() // legado
+            val photoList = mutableListOf<Map<String, Any?>>()
             for (foto in fotos) {
-                if (foto.remoteUrl != null) {
-                    photoUrls.add(foto.remoteUrl)
-                    continue
+                var remoteUrl = foto.remoteUrl
+                if (remoteUrl == null) {
+                    val file = File(foto.caminhoFoto)
+                    if (!file.exists()) {
+                        Log.w("SyncManager", "Arquivo de foto não encontrado: ${foto.caminhoFoto}")
+                    } else {
+                        val ref = storage.reference.child("backups/${entity.id}/photos/${foto.id}.jpg")
+                        try {
+                            ref.putFile(Uri.fromFile(file)).await()
+                            remoteUrl = ref.downloadUrl.await().toString()
+                            withContext(Dispatchers.IO) { dao.updateFotoRemoteUrl(foto.id, remoteUrl!!) }
+                            Log.d("SyncManager", "Foto ${foto.id} upload OK")
+                        } catch (fe: Exception) {
+                            Log.e("SyncManager", "Falha upload foto id=${foto.id}", fe)
+                        }
+                    }
                 }
-                val file = File(foto.caminhoFoto)
-                if (!file.exists()) {
-                    Log.w("SyncManager", "Arquivo de foto não encontrado: ${foto.caminhoFoto}")
-                    continue
-                }
-                val ref = storage.reference.child("backups/${entity.id}/photos/${foto.id}.jpg")
-                try {
-                    ref.putFile(Uri.fromFile(file)).await()
-                    val url = ref.downloadUrl.await().toString()
-                    photoUrls.add(url)
-                    withContext(Dispatchers.IO) { dao.updateFotoRemoteUrl(foto.id, url) }
-                    Log.d("SyncManager", "Foto ${foto.id} upload OK")
-                } catch (fe: Exception) {
-                    Log.e("SyncManager", "Falha upload foto id=${foto.id}", fe)
-                }
+                remoteUrl?.let { photoUrls.add(it) }
+                photoList.add(
+                    mapOf(
+                        "url" to remoteUrl,
+                        "latitude" to foto.latitude,
+                        "longitude" to foto.longitude,
+                        "altitude" to foto.altitude,
+                        "sistemaCoordenadas" to foto.sistemaCoordenadas,
+                        "dataHora" to foto.dataHora
+                    )
+                )
             }
             val mainPhotoUrl: String? = photoUrls.firstOrNull()
 
@@ -88,7 +98,8 @@ object SyncManager {
                 "status" to entity.status,
                 "createdAt" to entity.createdAt,
                 "photoUrl" to mainPhotoUrl,
-                "photoUrls" to photoUrls
+                "photoUrls" to photoUrls,
+                "photoList" to photoList
             )
             Log.d("SyncManager", "Enviando para coleção 'backups' doc=${entity.id}")
             firestore.collection("backups").document(entity.id.toString()).set(data).await()
