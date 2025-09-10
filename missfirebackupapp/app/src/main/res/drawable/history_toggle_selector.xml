@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Selected state: black background, red border, red text via textColor selector -->
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#000000" />
+            <corners android:radius="20dp" />
+            <stroke android:width="2dp" android:color="@color/redAccent" />
+            <padding android:left="24dp" android:top="12dp" android:right="24dp" android:bottom="12dp" />
+        </shape>
+    </item>
+    <!-- Default state: red background white text -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/redAccent" />
+            <corners android:radius="20dp" />
+            <padding android:left="24dp" android:top="12dp" android:right="24dp" android:bottom="12dp" />
+        </shape>
+    </item>
+</selector>

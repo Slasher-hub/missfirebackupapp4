@@ -55,7 +55,12 @@ class LoginActivity : AppCompatActivity() {
                 auth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            // Vai para a MainActivity
+                            // Exibe mensagem de build de teste e vai para a MainActivity
+                            Toast.makeText(
+                                this,
+                                "Versão: 02 (Build de teste)\nFavor informar bugs encontrados ou sugestões de melhoria",
+                                Toast.LENGTH_LONG
+                            ).show()
                             startActivity(Intent(this, MainActivity::class.java))
                             finish()
                         } else {
@@ -92,6 +97,11 @@ class LoginActivity : AppCompatActivity() {
         super.onStart()
         if (auth.currentUser != null) {
             ensureBasePermissions()
+            Toast.makeText(
+                this,
+                "Versão: 02 (Build de teste)\nFavor informar bugs encontrados ou sugestões de melhoria",
+                Toast.LENGTH_LONG
+            ).show()
             startActivity(Intent(this, MainActivity::class.java))
             finish()
         }

@@ -61,6 +61,11 @@ class BackupDetailActivity : AppCompatActivity() {
         val inputX = findViewById<TextInputEditText>(R.id.inputCoordenadaX)
         val inputY = findViewById<TextInputEditText>(R.id.inputCoordenadaY)
         val inputZ = findViewById<TextInputEditText>(R.id.inputCoordenadaZ)
+        // A opção "Sem fotos retiradas" só é editável no registro inicial.
+        findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.cbSemFotosRetiradas)?.apply {
+            isEnabled = false
+            alpha = 0.6f
+        }
 
     val btnSalvar = findViewById<Button>(R.id.btnSalvarEdicao)
         val btnFinalizar = findViewById<Button>(R.id.btnFinalizar)
@@ -146,7 +151,8 @@ class BackupDetailActivity : AppCompatActivity() {
                         findViewById<android.view.View>(id)?.isEnabled = false
                     }
                 }
-                // Bloqueia edição se já estiver PRONTO (aguardando sync) ou SINCRONIZADO
+                // Bloqueia edição somente se já tiver sido finalizado (PRONTO) ou sincronizado.
+                // Enquanto INCOMPLETO (novo fluxo) o usuário pode editar livremente.
                 if (b.status == "PRONTO" || b.status == "SINCRONIZADO") {
                     lockFields()
                     if (b.status == "SINCRONIZADO") {
@@ -330,4 +336,9 @@ class BackupDetailActivity : AppCompatActivity() {
             .show()
     }
     private fun Double?.formatOrDash(decimals: Int = 5): String = if (this == null) "-" else String.format(Locale.getDefault(), "% .${decimals}f", this)
+
+    // Stub adicionado para evitar referência não encontrada durante compilação.
+    // Caso exista chamada invisível a salvarDraftLocal (ex: código gerado ou caching), ela não causará erro.
+    @Suppress("UNUSED_PARAMETER")
+    private fun salvarDraftLocal() { /* noop */ }
 }

@@ -4,7 +4,7 @@
     <color name="secondaryButton">#333333</color> <!-- Cinza elegante -->
     <color name="textPrimary">#FFFFFF</color>
     <color name="fieldBorder">#888888</color> <!-- Cor da borda dos campos -->
-    <color name="hintColor">#AAAAAA</color> <!-- Cor do hint -->}
+    <color name="hintColor">#AAAAAA</color> <!-- Cor do hint -->
     <color name="redPrimary">#6E1E1E</color>
     <color name="grayPrimary">#606060</color>
     <color name="fieldBackground">#1E1E1E</color>
@@ -16,6 +16,13 @@
     <color name="gray">#757575</color>
      <color name="Hint">@color/box_stroke_color</color>
     <color name="grayScroll">#606060</color>
+    <!-- Status indicators -->
+    <color name="statusLocal">#FFA000</color> <!-- Amber for local (rascunho) -->
+    <color name="statusCloud">#1E88E5</color> <!-- Blue for synced -->
+    <color name="statusConcluida">#2E7D32</color> <!-- Green for concluded investigation -->
+    <!-- Update card / thumbnails -->
+    <color name="updateCardBg">#2A2A2A</color>
+    <color name="thumbnailBorder">#555555</color>
 
 
 </resources>

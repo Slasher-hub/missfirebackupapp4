@@ -8,6 +8,10 @@ data class BackupEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
 
+    // ID único remoto (Firestore document id). Pode ser igual ao id local em instalações antigas
+    // ou um UUID/random gerado quando detectamos colisão após reinstalação.
+    val remoteId: String? = null,
+
     val data: String,
     val unidade: String,
     val cava: String,
@@ -33,6 +37,10 @@ data class BackupEntity(
     val status: String = "INCOMPLETO",
     // Flag indica se última tentativa de sync falhou (para exibir botão retry)
     val syncError: Boolean = false,
+    // Mensagem de erro detalhada da última falha de sincronização (se houver)
+    val syncErrorMessage: String? = null,
     // Timestamp criação (epoch millis) para ordenação/histórico
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    // Timestamp da última sincronização bem sucedida
+    val lastSyncAt: Long? = null
 )

@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Cache (legado) -->
     <cache-path name="images" path="." />
+    <!-- Diretório persistente interno para fotos de backups -->
+    <files-path name="photos" path="backups_photos/" />
+    <!-- Diretório para fotos de missfire -->
+    <files-path name="missfire_photos" path="missfire_photos/" />
 </paths>

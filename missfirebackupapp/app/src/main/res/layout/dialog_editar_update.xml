@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@drawable/bg_dialog_update">
+
+    <TextView
+        android:id="@+id/tvTituloEditarUpdate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Editar atualização"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:textSize="18sp" />
+
+    <Space android:layout_width="match_parent" android:layout_height="12dp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Texto da atualização"
+        app:hintTextAppearance="@style/TextAppearance.Missfire.Hint"
+        app:boxBackgroundColor="@color/fieldBackground"
+        app:boxCornerRadiusTopStart="16dp"
+        app:boxCornerRadiusTopEnd="16dp"
+        app:boxCornerRadiusBottomStart="16dp"
+        app:boxCornerRadiusBottomEnd="16dp">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/inputEditarTextoUpdate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="100dp"
+            android:gravity="top|start"
+            android:inputType="textMultiLine"
+            android:textColor="@color/white" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Space android:layout_width="match_parent" android:layout_height="20dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelarEditarUpdate"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cancelar"
+            android:textAllCaps="false"
+            android:backgroundTint="@color/buttonSecondary"
+            android:textColor="@color/white"
+            app:cornerRadius="20dp" />
+
+        <Space android:layout_width="12dp" android:layout_height="wrap_content" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSalvarEditarUpdate"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Salvar"
+            android:textAllCaps="false"
+            android:backgroundTint="@color/redAccent"
+            android:textColor="@color/white"
+            app:cornerRadius="20dp"
+            app:icon="@drawable/ic_save"
+            app:iconTint="@color/white" />
+    </LinearLayout>
+
+</LinearLayout>

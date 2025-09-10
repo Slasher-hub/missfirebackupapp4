@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Nome do App -->
-    <string name="app_name">Missfire Backup App</string>
+    <string name="app_name">Misfire Backup App</string>
 
     <!-- Tela de Login -->
 
@@ -17,11 +17,11 @@
     <!-- Telas principais -->
     <string name="titulo_principal">Menu Principal</string>
     <string name="tela_de_backup">Tela de Backup</string>
-    <string name="tela_de_missfire">Tela de Missfire</string>
+    <string name="tela_de_missfire">Tela de Misfire</string>
 
     <!-- Ações -->
     <string name="registrar_backup">Registrar Backup</string>
-    <string name="registrar_missfire">Registrar Missfire</string>
+    <string name="registrar_missfire">Registrar Misfire</string>
     <string name="sair">Sair</string>
     <string name="voltar">Voltar</string>
     <string name="fazer_upload">Fazer Upload</string>
@@ -41,7 +41,7 @@
     <string name="coordenada">Coordenada</string>
     <string name="observacoes">Observações</string>
 
-    <!-- Campos Missfire -->
+    <!-- Campos Misfire -->
     <string name="data_do_desmonte">Data do Desmonte</string>
     <string name="data_descoberta">Data da Descoberta</string>
     <string name="local_encontrado">Local Encontrado</string>
@@ -58,5 +58,5 @@
     <string name="registrar">Registrar</string>
     <string name="hist_rico_de_registros">Histórico de Registros</string>
     <string name="backup">Backup\n</string>
-    <string name="missfire">Missfire\n</string>
+    <string name="missfire">Misfire\n</string>
 </resources>

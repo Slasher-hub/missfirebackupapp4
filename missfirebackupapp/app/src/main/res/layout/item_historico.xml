@@ -48,6 +48,35 @@
             android:textSize="14sp"
             android:textColor="@color/redAccent"
             android:layout_marginTop="4dp" />
+
+        <!-- Detalhes de investigação concluída -->
+        <LinearLayout
+            android:id="@+id/containerConclusao"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="6dp"
+            android:padding="8dp"
+            android:background="@drawable/historico_item_background"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvCausa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:text="Causa:" />
+
+            <TextView
+                android:id="@+id/tvMedidas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:layout_marginTop="4dp"
+                android:text="Medidas:" />
+        </LinearLayout>
     </LinearLayout>
 
     <ImageButton

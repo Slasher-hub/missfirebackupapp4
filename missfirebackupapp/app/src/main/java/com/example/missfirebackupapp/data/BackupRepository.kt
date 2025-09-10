@@ -19,6 +19,7 @@ class BackupRepository(private val backupDao: BackupDao) {
 
     suspend fun updateFull(backup: BackupEntity): Int = backupDao.updateFull(
         id = backup.id,
+    remoteId = backup.remoteId,
         data = backup.data,
         unidade = backup.unidade,
         cava = backup.cava,
@@ -37,8 +38,12 @@ class BackupRepository(private val backupDao: BackupDao) {
         coordenadaZ = backup.coordenadaZ,
     sistemaCoordenadas = backup.sistemaCoordenadas,
     status = backup.status,
-        syncError = backup.syncError
+    syncError = backup.syncError,
+    syncErrorMessage = backup.syncErrorMessage,
+    lastSyncAt = backup.lastSyncAt
     )
+
+    suspend fun updateRemoteId(id: Int, remoteId: String): Int = backupDao.updateRemoteId(id, remoteId)
 
     suspend fun clearAll(): Int {
         return backupDao.clearAll()

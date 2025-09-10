@@ -6,13 +6,14 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [BackupEntity::class, FotoEntity::class],
-    version = 6,
+    entities = [BackupEntity::class, FotoEntity::class, MisfireEntity::class, MissfireAttachmentEntity::class, MissfireUpdateEntity::class],
+    version = 10,
     exportSchema = false
 )
 abstract class BackupDatabase : RoomDatabase() {
 
     abstract fun backupDao(): BackupDao
+    abstract fun missfireDao(): MisfireDao
 
     companion object {
         @Volatile
@@ -25,8 +26,8 @@ abstract class BackupDatabase : RoomDatabase() {
                     BackupDatabase::class.java,
                     "backup_database"
                 )
-                    // Durante desenvolvimento usamos destructive migration; planejar migration real depois.
-                    .fallbackToDestructiveMigration(true)
+                    // TODO: substituir fallback por migrations reais quando consolidarmos schema
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

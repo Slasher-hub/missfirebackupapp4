@@ -1,8 +1,8 @@
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android") version "2.2.0" // Atualizado para evitar conflito
+    id("org.jetbrains.kotlin.android") // usar versão do catálogo (2.0.21)
     id("com.google.gms.google-services")
-    id("com.google.devtools.ksp") version "2.2.0-2.0.2" // KSP substitui KAPT
+    id("com.google.devtools.ksp") version "2.0.21-1.0.25" // alinhado ao Kotlin 2.0.21
 }
 
 android {
@@ -13,8 +13,8 @@ android {
         applicationId = "com.example.missfirebackupapp"
         minSdk = 23
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+    versionCode = 2
+    versionName = "1.0.1-test"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -51,13 +51,14 @@ android {
 }
 
 dependencies {
-    val roomVersion = "2.7.0-alpha01" // versão mais recente compatível com KSP
+    val roomVersion = "2.6.1" // estável
 
     // AndroidX
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
 
     // Firebase
     implementation("com.google.firebase:firebase-auth:22.3.1")

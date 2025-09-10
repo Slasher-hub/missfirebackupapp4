@@ -5,6 +5,7 @@ import android.app.DatePickerDialog
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.*
+import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -21,6 +22,8 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import org.json.JSONArray
+import org.json.JSONObject
 
 class BackupActivity : AppCompatActivity() {
 
@@ -34,6 +37,9 @@ class BackupActivity : AppCompatActivity() {
     private val pendingPhotos = mutableListOf<PendingPhoto>()
     private var selectedPhotoIndex: Int? = null // indice da foto cujas coordenadas estão aplicadas
     private var lastBackupId: Long? = null
+
+    // Controle de estado de captura de foto (para sobreviver recriação da Activity / processo)
+    private val CAMERA_STATE_PREF = "camera_state"
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
 
@@ -55,35 +61,57 @@ class BackupActivity : AppCompatActivity() {
     private val takePictureLauncher = registerForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { success ->
-        if (success && currentPhotoPath != null) {
-            if (pendingPhotos.size >= 3) {
-                Toast.makeText(this, "Limite de 3 fotos atingido", Toast.LENGTH_SHORT).show()
-            } else {
-                val ts = dateFormat.format(Date())
-                val sistema = getSharedPreferences("prefs", MODE_PRIVATE).getString("coordSystem", "WGS84")
-                pendingPhotos.add(
-                    PendingPhoto(
-                        path = currentPhotoPath!!,
-                        latitude = currentLatitude,
-                        longitude = currentLongitude,
-                        altitude = currentAltitude,
-                        sistema = sistema,
-                        timestamp = ts
-                    )
-                )
-                Toast.makeText(this, "Foto ${pendingPhotos.size}/3 capturada", Toast.LENGTH_SHORT).show()
-                renderPendingPhotos()
+        try {
+            // Recupera path salvo se a Activity foi recriada e o campo ficou null
+            if (currentPhotoPath == null) {
+                val tmp = getSharedPreferences("camera_tmp", MODE_PRIVATE).getString("lastPhotoPath", null)
+                if (tmp != null) {
+                    currentPhotoPath = tmp
+                    Log.d("BackupActivity", "Restaurado currentPhotoPath de SharedPreferences: $tmp")
+                }
             }
+            if (success && currentPhotoPath != null) {
+                if (pendingPhotos.size >= 3) {
+                    Toast.makeText(this, "Limite de 3 fotos atingido", Toast.LENGTH_SHORT).show()
+                } else {
+                    val ts = dateFormat.format(Date())
+                    val sistema = getSharedPreferences("prefs", MODE_PRIVATE).getString("coordSystem", "WGS84")
+                    pendingPhotos.add(
+                        PendingPhoto(
+                            path = currentPhotoPath!!,
+                            latitude = currentLatitude,
+                            longitude = currentLongitude,
+                            altitude = currentAltitude,
+                            sistema = sistema,
+                            timestamp = ts
+                        )
+                    )
+                    Toast.makeText(this, "Foto ${pendingPhotos.size}/3 capturada", Toast.LENGTH_SHORT).show()
+                    renderPendingPhotos()
+                    persistPhotosDraft() // salva imediatamente
+                }
+            } else if (!success) {
+                Toast.makeText(this, "Captura cancelada", Toast.LENGTH_SHORT).show()
+            } else if (success && currentPhotoPath == null) {
+                Toast.makeText(this, "Falha ao recuperar caminho da foto", Toast.LENGTH_LONG).show()
+                Log.e("BackupActivity", "Success true mas currentPhotoPath null")
+            }
+        } catch (ex: Exception) {
+            Log.e("BackupActivity", "Erro no callback de foto", ex)
+            Toast.makeText(this, "Erro ao processar foto", Toast.LENGTH_LONG).show()
+        } finally {
+            // Limpa para evitar reuso indevido
+            getSharedPreferences("camera_tmp", MODE_PRIVATE).edit().remove("lastPhotoPath").apply()
+            // Limpa flag de captura em andamento
+            getSharedPreferences(CAMERA_STATE_PREF, MODE_PRIVATE).edit().clear().apply()
             currentPhotoPath = null
-        } else {
-            currentPhotoPath = null
-            Toast.makeText(this, "Captura cancelada", Toast.LENGTH_SHORT).show()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_backup)
+    Log.d("BackupActivity", "onCreate - iniciado. savedInstanceState? ${savedInstanceState != null}")
 
     // ✅ Banco e Repositório
         val dao = BackupDatabase.getDatabase(this).backupDao()
@@ -117,7 +145,8 @@ class BackupActivity : AppCompatActivity() {
     val inputZ = findViewById<TextInputEditText>(R.id.inputCoordenadaZ)
     val containerFotos = findViewById<LinearLayout>(R.id.containerFotos)
     val tvFotosTitulo = findViewById<TextView>(R.id.tvFotosTitulo)
-        val tvStatusCoordenadas = findViewById<TextView>(R.id.tvStatusCoordenadas)
+    val tvStatusCoordenadas = findViewById<TextView>(R.id.tvStatusCoordenadas)
+    val cbSemFotos = findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.cbSemFotosRetiradas)
     val prefs = getSharedPreferences("prefs", MODE_PRIVATE)
     val sistemaPreferido = { prefs.getString("coordSystem", "WGS84") ?: "WGS84" }
 
@@ -127,9 +156,22 @@ class BackupActivity : AppCompatActivity() {
             inputZ.isEnabled = enabled
         }
 
+        fun applySemFotosState(isChecked: Boolean) {
+            if (isChecked) {
+                setManualCoordinatesEnabled(true)
+                tvStatusCoordenadas?.text = "Coordenadas: informar manualmente (sem fotos)"
+            } else {
+                // Se não houver coordenadas atuais, volta a bloquear edição manual até captura
+                if (currentLatitude == null && currentLongitude == null) {
+                    setManualCoordinatesEnabled(false)
+                    tvStatusCoordenadas?.text = "Coordenadas: Aguardando captura da foto"
+                }
+            }
+        }
+
         // Inicialmente usuário não deve editar manualmente até tentar capturar a foto
         setManualCoordinatesEnabled(false)
-        tvStatusCoordenadas?.text = "Coordenadas: Aguardando captura da foto"
+    tvStatusCoordenadas?.text = "Coordenadas: Aguardando captura da foto"
 
         // ✅ Configuração das listas suspensas
         val motivos = listOf(
@@ -237,29 +279,10 @@ class BackupActivity : AppCompatActivity() {
             datePicker.show()
         }
 
-        // ✅ Rascunho (draft) - restaurar valores salvos antes de permissões
+        // ✅ Rascunho persistente (campos + fotos + seleção)
         val draft = getSharedPreferences("draft", MODE_PRIVATE)
-        fun restoreDraft() {
-            inputData.setText(draft.getString("data", ""))
-            inputUnidade.setText(draft.getString("unidade", ""), false)
-            inputCava.setText(draft.getString("cava", ""))
-            inputBanco.setText(draft.getString("banco", ""))
-            inputFogo.setText(draft.getString("fogo", ""))
-            inputFuro.setText(draft.getString("furo", ""))
-            inputDetonador.setText(draft.getString("detonador", ""))
-            inputEspoleta.setText(draft.getString("espoleta", ""))
-            inputMotivo.setText(draft.getString("motivo", ""), false)
-            inputTipoDetonador.setText(draft.getString("tipoDetonador", ""), false)
-            inputCaboDetonador.setText(draft.getString("caboDetonador", ""), false)
-            inputMetragem.setText(draft.getString("metragem", ""), false)
-            inputRecuperacao.setText(draft.getString("recuperacao", ""), false)
-            inputX.setText(draft.getString("x", ""))
-            inputY.setText(draft.getString("y", ""))
-            inputZ.setText(draft.getString("z", ""))
-        }
-        restoreDraft()
 
-        fun saveDraft() {
+    fun saveDraft() {
             draft.edit()
                 .putString("data", inputData.text.toString())
                 .putString("unidade", inputUnidade.text.toString())
@@ -277,14 +300,86 @@ class BackupActivity : AppCompatActivity() {
                 .putString("x", inputX.text.toString())
                 .putString("y", inputY.text.toString())
                 .putString("z", inputZ.text.toString())
+        .putBoolean("sem_fotos", cbSemFotos?.isChecked == true)
                 .apply()
+            persistPhotosDraft()
         }
 
-        // Listener genérico simples (poderia otimizar com TextWatcher único)
+    fun restoreDraft() {
+            inputData.setText(draft.getString("data", ""))
+            inputUnidade.setText(draft.getString("unidade", ""), false)
+            inputCava.setText(draft.getString("cava", ""))
+            inputBanco.setText(draft.getString("banco", ""))
+            inputFogo.setText(draft.getString("fogo", ""))
+            inputFuro.setText(draft.getString("furo", ""))
+            inputDetonador.setText(draft.getString("detonador", ""))
+            inputEspoleta.setText(draft.getString("espoleta", ""))
+            inputMotivo.setText(draft.getString("motivo", ""), false)
+            inputTipoDetonador.setText(draft.getString("tipoDetonador", ""), false)
+            inputCaboDetonador.setText(draft.getString("caboDetonador", ""), false)
+            inputMetragem.setText(draft.getString("metragem", ""), false)
+            inputRecuperacao.setText(draft.getString("recuperacao", ""), false)
+            inputX.setText(draft.getString("x", ""))
+            inputY.setText(draft.getString("y", ""))
+            inputZ.setText(draft.getString("z", ""))
+            cbSemFotos?.isChecked = draft.getBoolean("sem_fotos", false)
+            runCatching {
+                val json = draft.getString("photos_json", null)
+                if (!json.isNullOrBlank()) {
+                    val arr = JSONArray(json)
+                    pendingPhotos.clear()
+                    for (i in 0 until arr.length()) {
+                        val o = arr.getJSONObject(i)
+                        val path = o.optString("path")
+                        if (path.isNotBlank() && File(path).exists()) {
+                            pendingPhotos.add(
+                                PendingPhoto(
+                                    path = path,
+                                    latitude = if (o.isNull("lat")) null else o.optDouble("lat"),
+                                    longitude = if (o.isNull("lon")) null else o.optDouble("lon"),
+                                    altitude = if (o.isNull("alt")) null else o.optDouble("alt"),
+                                    sistema = o.optString("sistema", null),
+                                    timestamp = o.optString("ts", "")
+                                )
+                            )
+                        }
+                    }
+                    selectedPhotoIndex = draft.getInt("selectedPhotoIndex", -1).let { if (it >= 0 && it < pendingPhotos.size) it else null }
+                    renderPendingPhotos()
+                    // Reaplica automaticamente as coordenadas da foto selecionada (caso sistema != WGS84 elas se perdiam visualmente)
+                    selectedPhotoIndex?.let { idx ->
+                        // Evita duplicar persistência desnecessária: aplicar já salva novamente
+                        aplicarCoordenadasFoto(idx)
+                    }
+                }
+            }.onFailure { Log.w("BackupActivity", "Falha ao restaurar fotos do rascunho: ${it.message}") }
+        }
+    restoreDraft()
+    // Listener para liberar coordenadas manuais quando não há fotos
+    cbSemFotos?.setOnCheckedChangeListener { _, checked -> applySemFotosState(checked) }
+    applySemFotosState(cbSemFotos?.isChecked == true)
+
+        // Restaura estado de captura em andamento (caso Activity tenha sido recriada durante a câmera)
+        getSharedPreferences(CAMERA_STATE_PREF, MODE_PRIVATE).let { camState ->
+            if (camState.getBoolean("in_capture", false)) {
+                val possiblePath = getSharedPreferences("camera_tmp", MODE_PRIVATE).getString("lastPhotoPath", null)
+                currentPhotoPath = possiblePath
+                Log.d("BackupActivity", "Restauração: havia captura em andamento. path=$possiblePath")
+                findViewById<TextView>(R.id.tvStatusCoordenadas)?.text = "Coordenadas: retomando captura... (${sistemaPreferido()})"
+            }
+        }
+
         listOf(
             inputData,inputUnidade,inputCava,inputBanco,inputFogo,inputFuro,inputDetonador,inputEspoleta,
             inputMotivo,inputTipoDetonador,inputCaboDetonador,inputMetragem,inputRecuperacao,inputX,inputY,inputZ
-        ).forEach { v -> v.setOnFocusChangeListener { _, _ -> saveDraft() } }
+        ).forEach { v ->
+            v.setOnFocusChangeListener { _, _ -> saveDraft() }
+            v.addTextChangedListener(object: android.text.TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: android.text.Editable?) { saveDraft() }
+            })
+        }
 
         // Garantir permissões no início desta Activity (já deveriam ter sido solicitadas na app, reforço)
         ensurePermissions()
@@ -297,6 +392,13 @@ class BackupActivity : AppCompatActivity() {
             }
             if (checkPermissions()) {
                 getCurrentLocation()
+                // Marca estado de captura antes de abrir a câmera
+                getSharedPreferences(CAMERA_STATE_PREF, MODE_PRIVATE).edit()
+                    .putBoolean("in_capture", true)
+                    .putLong("ts", System.currentTimeMillis())
+                    .putString("coordSystem", sistemaPreferido())
+                    .apply()
+                Log.d("BackupActivity", "Iniciando captura - sistema=${sistemaPreferido()}")
                 launchCamera()
                 tvStatusCoordenadas?.text = "Coordenadas: capturando... (${sistemaPreferido()})"
             } else {
@@ -307,17 +409,51 @@ class BackupActivity : AppCompatActivity() {
         // ✅ Botão Salvar Localmente
         val btnSalvar = findViewById<Button>(R.id.btnSalvarLocal)
         btnSalvar.setOnClickListener {
-            // Validação mínima
-            if (inputData.text.isNullOrBlank() || inputUnidade.text.isNullOrBlank() || inputCava.text.isNullOrBlank()) {
-                Toast.makeText(this, "Preencha Data, Unidade e Cava", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            if (pendingPhotos.isEmpty()) {
-                Toast.makeText(this, "Capture pelo menos 1 foto", Toast.LENGTH_SHORT).show()
+            val erros = mutableListOf<String>()
+            if (inputData.text.isNullOrBlank()) erros.add("Data")
+            if (inputUnidade.text.isNullOrBlank()) erros.add("Unidade")
+            if (inputCava.text.isNullOrBlank()) erros.add("Cava")
+            if (inputFuro.text.isNullOrBlank()) erros.add("Furo")
+            val metragemVal = inputMetragem.text?.toString()?.toDoubleOrNull()
+            if (metragemVal == null) erros.add("Metragem numérica")
+            // Exigir 1 foto mínima, a menos que o usuário marque "Sem fotos retiradas".
+            val semFotosMarcado = cbSemFotos?.isChecked == true
+            if (!semFotosMarcado && pendingPhotos.isEmpty()) erros.add("1 foto mínima")
+
+            val (x,y,z, sistema) = buildCoordinatesForStorage(inputX,inputY,inputZ)
+            // Coordenadas são sempre desejáveis; tornam-se obrigatórias quando não há foto (semFotosMarcado)
+            if (semFotosMarcado && x == 0.0 && y == 0.0) erros.add("Coordenadas")
+            // Sempre salvar como INCOMPLETO (rascunho) até o usuário pressionar "Finalizar" na tela de detalhes.
+            // Mantemos a lista de erros apenas para feedback imediato.
+            val statusCalc = "INCOMPLETO"
+        // Bloqueia salvamento se faltar os campos mínimos: Data, Unidade, Cava e (1 foto OU sem fotos marcada com coordenadas).
+            val camposMinimosOk =
+                !inputData.text.isNullOrBlank() &&
+                !inputUnidade.text.isNullOrBlank() &&
+                !inputCava.text.isNullOrBlank() &&
+                (
+            (pendingPhotos.isNotEmpty()) ||
+            (semFotosMarcado && !(x == 0.0 && y == 0.0))
+                )
+
+            if (!camposMinimosOk) {
+                val faltando = mutableListOf<String>()
+                if (inputData.text.isNullOrBlank()) faltando.add("Data")
+                if (inputUnidade.text.isNullOrBlank()) faltando.add("Unidade")
+                if (inputCava.text.isNullOrBlank()) faltando.add("Cava")
+                if (!semFotosMarcado && pendingPhotos.isEmpty()) faltando.add("1 foto mínima")
+                if (semFotosMarcado && x == 0.0 && y == 0.0) faltando.add("Coordenadas obrigatórias sem foto")
+                Toast.makeText(this, "Não foi possível salvar. Faltando: ${faltando.joinToString()}", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
 
-            val (x,y,z, sistema) = buildCoordinatesForStorage(inputX,inputY,inputZ)
+            // Se passou nos mínimos, informamos o restante como incompleto no status, mas prosseguimos com o salvamento do rascunho.
+            if (erros.isNotEmpty()) {
+                Toast.makeText(this, "Rascunho salvo INCOMPLETO (faltando: ${erros.joinToString()})", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(this, "Rascunho salvo. Use 'Finalizar' depois para sincronizar.", Toast.LENGTH_LONG).show()
+            }
+
             val backup = BackupEntity(
                 data = inputData.text.toString(),
                 unidade = inputUnidade.text.toString(),
@@ -336,13 +472,12 @@ class BackupActivity : AppCompatActivity() {
                 coordenadaY = y,
                 coordenadaZ = z,
                 sistemaCoordenadas = sistema,
-                status = "INCOMPLETO"
+                status = statusCalc
             )
 
             lifecycleScope.launch(Dispatchers.IO) {
                 val newId = repository.insertBackup(backup)
                 lastBackupId = newId
-                // Salvar fotos pendentes agora vinculadas
                 pendingPhotos.forEach { p ->
                     val foto = FotoEntity(
                         backupId = newId.toInt(),
@@ -357,14 +492,14 @@ class BackupActivity : AppCompatActivity() {
                 }
                 pendingPhotos.clear()
                 runOnUiThread {
-                    Toast.makeText(this@BackupActivity, "Backup criado (#$newId)", Toast.LENGTH_SHORT).show()
+                    // Mensagem principal já exibida acima; aqui apenas reforço curto.
+                    Toast.makeText(this@BackupActivity, "Backup salvo (#$newId) como INCOMPLETO", Toast.LENGTH_SHORT).show()
                     resetForm(
                         inputData, inputUnidade, inputCava, inputBanco, inputFogo, inputFuro,
                         inputDetonador, inputEspoleta, inputMotivo, inputTipoDetonador,
                         inputCaboDetonador, inputMetragem, inputRecuperacao, inputX, inputY, inputZ
                     )
-                    // Limpa rascunho após salvar
-                    draft.edit().clear().apply()
+                    draft.edit().clear().apply() // limpa tudo somente após salvar
                 }
             }
         }
@@ -388,10 +523,32 @@ class BackupActivity : AppCompatActivity() {
     ).all { perm -> ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED }
 
     private fun launchCamera() {
-        val photoFile = File.createTempFile("photo_${System.currentTimeMillis()}", ".jpg", cacheDir)
+        val dir = File(filesDir, "backups_photos")
+        if (!dir.exists()) dir.mkdirs()
+        val photoFile = File(dir, "photo_${System.currentTimeMillis()}.jpg")
         currentPhotoPath = photoFile.absolutePath
+        // Persistir para sobreviver a recriação da Activity
+        getSharedPreferences("camera_tmp", MODE_PRIVATE).edit().putString("lastPhotoPath", currentPhotoPath).apply()
         val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", photoFile)
+    Log.d("BackupActivity", "launchCamera - path=$currentPhotoPath uri=$uri")
         takePictureLauncher.launch(uri)
+    }
+
+    // Salva estado crítico (caso o sistema recrie a Activity durante a câmera)
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("currentPhotoPath", currentPhotoPath)
+        currentLatitude?.let { outState.putDouble("lat", it) }
+        currentLongitude?.let { outState.putDouble("lon", it) }
+        currentAltitude?.let { outState.putDouble("alt", it) }
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        if (currentPhotoPath == null) currentPhotoPath = savedInstanceState.getString("currentPhotoPath")
+        if (savedInstanceState.containsKey("lat")) currentLatitude = savedInstanceState.getDouble("lat")
+        if (savedInstanceState.containsKey("lon")) currentLongitude = savedInstanceState.getDouble("lon")
+        if (savedInstanceState.containsKey("alt")) currentAltitude = savedInstanceState.getDouble("alt")
     }
 
     // ✅ Pegar localização
@@ -423,21 +580,26 @@ class BackupActivity : AppCompatActivity() {
         val lat = currentLatitude
         val lon = currentLongitude
         if (lat != null && lon != null) {
-            val (x,y,zoneOrSys) = if (system.startsWith("WGS84")) {
-                Triple(lat, lon, "WGS84")
+            var xVal: Double
+            var yVal: Double
+            var labelSystem: String = system
+            if (system.startsWith("WGS84")) {
+                xVal = lat
+                yVal = lon
+                labelSystem = "WGS84"
             } else if (system.startsWith("SIRGAS2000") || system.startsWith("SAD69")) {
-                // Treat as UTM zone based on system suffix (e.g., SIRGAS2000-23S)
-                val (_, zonePart) = system.split('-', limit = 2).let { if (it.size==2) it[0] to it[1] else system to "23S" }
                 val (adjLat, adjLon) = CoordinateUtils.adjustDatum(lat, lon, system)
-                val (easting, northing, zone) = CoordinateUtils.wgs84ToUTM(adjLat, adjLon)
-                Triple(easting, northing, "$system")
+                val (easting, northing, _) = CoordinateUtils.wgs84ToUTM(adjLat, adjLon)
+                // Evita NumberFormatException em locales com vírgula
+                xVal = kotlin.math.round(easting * 1000.0) / 1000.0
+                yVal = kotlin.math.round(northing * 1000.0) / 1000.0
             } else {
-                Triple(lat, lon, system)
+                xVal = lat
+                yVal = lon
             }
-            tv.text = "Coordenadas: capturadas ($zoneOrSys)"
-            // Disable manual edits
-            findViewById<TextInputEditText>(R.id.inputCoordenadaX)?.apply { setText(String.format("%.3f", x)); isEnabled = false }
-            findViewById<TextInputEditText>(R.id.inputCoordenadaY)?.apply { setText(String.format("%.3f", y)); isEnabled = false }
+            tv.text = "Coordenadas: capturadas ($labelSystem)"
+            findViewById<TextInputEditText>(R.id.inputCoordenadaX)?.apply { setText(String.format("%.3f", xVal)); isEnabled = false }
+            findViewById<TextInputEditText>(R.id.inputCoordenadaY)?.apply { setText(String.format("%.3f", yVal)); isEnabled = false }
             findViewById<TextInputEditText>(R.id.inputCoordenadaZ)?.apply { setText(String.format("%.2f", currentAltitude ?: 0.0)); isEnabled = currentAltitude == null }
         }
     }
@@ -483,6 +645,25 @@ class BackupActivity : AppCompatActivity() {
         findViewById<TextInputEditText>(R.id.inputCoordenadaZ)?.isEnabled = false
     }
 
+    private fun persistPhotosDraft() {
+        val draft = getSharedPreferences("draft", MODE_PRIVATE)
+        val arr = JSONArray()
+        pendingPhotos.forEach { p ->
+            val o = JSONObject()
+            o.put("path", p.path)
+            o.put("lat", p.latitude)
+            o.put("lon", p.longitude)
+            o.put("alt", p.altitude)
+            o.put("sistema", p.sistema)
+            o.put("ts", p.timestamp)
+            arr.put(o)
+        }
+        draft.edit()
+            .putString("photos_json", arr.toString())
+            .putInt("selectedPhotoIndex", selectedPhotoIndex ?: -1)
+            .apply()
+    }
+
     private fun renderPendingPhotos() {
         val container = findViewById<LinearLayout>(R.id.containerFotos) ?: return
         val titulo = findViewById<TextView>(R.id.tvFotosTitulo)
@@ -512,11 +693,11 @@ class BackupActivity : AppCompatActivity() {
                     pendingPhotos.removeAt(index)
                     if (selectedPhotoIndex == index) {
                         selectedPhotoIndex = null
-                        // limpar coordenadas? manter as atuais; não alteramos campos
                     } else if (selectedPhotoIndex != null && selectedPhotoIndex!! > index) {
                         selectedPhotoIndex = selectedPhotoIndex!! - 1
                     }
                     renderPendingPhotos()
+                    persistPhotosDraft()
                 }
             }
             row.addView(radio)
@@ -555,6 +736,7 @@ class BackupActivity : AppCompatActivity() {
             }
         }
         renderPendingPhotos() // para atualizar radios
+        persistPhotosDraft()
     }
     private fun Double?.formatOrDash(decimals: Int = 5): String = if (this == null) "-" else String.format(Locale.getDefault(), "% .${decimals}f", this)
 }

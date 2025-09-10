@@ -5,5 +5,8 @@ data class HistoricoItem(
     val titulo: String,
     val status: String,
     val syncError: Boolean,
-    var concluido: Boolean = false
+    val syncErrorMessage: String? = null,
+    var concluido: Boolean = false,
+    val causa: String? = null,
+    val medidas: String? = null
 )
