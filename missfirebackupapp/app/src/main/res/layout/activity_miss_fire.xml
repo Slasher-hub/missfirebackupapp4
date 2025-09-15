@@ -61,12 +61,12 @@
                     android:textSize="13sp"/>
             </LinearLayout>
 
-            <!-- Data da ocorrência -->
+            <!-- Data do evento -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Data da ocorrência"
+                android:hint="Data do evento"
                 app:hintTextAppearance="@style/TextAppearance.Missfire.Hint"
                 app:boxBackgroundColor="@color/fieldBackground"
                 app:endIconMode="custom"
@@ -89,12 +89,12 @@
 
             <Space android:layout_width="match_parent" android:layout_height="12dp" />
 
-            <!-- Local (dropdown) -->
+            <!-- Unidade operacional (dropdown) -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Local"
+                android:hint="Unidade operacional"
                 android:textColorHint="@color/gray"
                 app:hintTextAppearance="@style/TextAppearance.Missfire.Hint"
                 app:boxBackgroundColor="@color/fieldBackground"
@@ -116,12 +116,12 @@
 
             <Space android:layout_width="match_parent" android:layout_height="12dp" />
 
-            <!-- Responsável -->
+            <!-- Nome do usuário -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Responsável"
+                android:hint="Nome do usuário"
                 android:textColorHint="@color/gray"
                 app:hintTextAppearance="@style/TextAppearance.Missfire.Hint"
                 app:boxBackgroundColor="@color/fieldBackground"
@@ -140,9 +140,35 @@
 
             <Space android:layout_width="match_parent" android:layout_height="12dp" />
 
-            <!-- Itens encontrados -->
+            <!-- Tipo de registro (dropdown) -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Tipo de registro"
+                android:textColorHint="@color/gray"
+                app:hintTextAppearance="@style/TextAppearance.Missfire.Hint"
+                app:boxBackgroundColor="@color/fieldBackground"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
+                <AutoCompleteTextView
+                    android:id="@+id/inputTipoRegistro"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:focusable="false"
+                    android:cursorVisible="false"
+                    android:inputType="none"
+                    android:longClickable="false"
+                    android:textColor="@android:color/white"
+                    android:minHeight="48dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Itens encontrados (será preenchido depois no histórico) -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:id="@+id/layoutItensEncontrados"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Itens encontrados"
@@ -152,7 +178,8 @@
                 app:boxCornerRadiusTopStart="16dp"
                 app:boxCornerRadiusTopEnd="16dp"
                 app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp">
+                app:boxCornerRadiusBottomEnd="16dp"
+                android:visibility="gone">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/inputItens"
                     android:layout_width="match_parent"
@@ -164,9 +191,10 @@
 
             <Space android:layout_width="match_parent" android:layout_height="12dp" />
 
-            <!-- Descrição da ocorrência -->
+            <!-- Descrição da ocorrência (será preenchida depois no histórico) -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:id="@+id/layoutDescricao"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Descrição da ocorrência"
@@ -176,7 +204,8 @@
                 app:boxCornerRadiusTopStart="16dp"
                 app:boxCornerRadiusTopEnd="16dp"
                 app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp">
+                app:boxCornerRadiusBottomEnd="16dp"
+                android:visibility="gone">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/inputDescricao"
                     android:layout_width="match_parent"

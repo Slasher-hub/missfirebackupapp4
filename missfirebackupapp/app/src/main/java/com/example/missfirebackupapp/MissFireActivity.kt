@@ -45,6 +45,7 @@ class MisfireActivity : AppCompatActivity() {
     private lateinit var inputData: TextInputEditText
     private lateinit var inputLocal: AutoCompleteTextView
     private lateinit var inputResponsavel: TextInputEditText
+    private lateinit var inputTipoRegistro: AutoCompleteTextView
     private lateinit var inputItens: TextInputEditText
     private lateinit var inputDescricao: TextInputEditText
 
@@ -91,12 +92,14 @@ class MisfireActivity : AppCompatActivity() {
     findViewById<MaterialToolbar>(R.id.topAppBarMissfire).setNavigationOnClickListener { finish() }
     inputData = findViewById(R.id.inputDataOcorrencia)
         inputLocal = findViewById(R.id.inputLocal)
-        inputResponsavel = findViewById(R.id.inputResponsavel)
+    inputResponsavel = findViewById(R.id.inputResponsavel)
+    inputTipoRegistro = findViewById(R.id.inputTipoRegistro)
         inputItens = findViewById(R.id.inputItens)
         inputDescricao = findViewById(R.id.inputDescricao)
 
         configurarDropdownLocais()
-        configurarDataPicker()
+    configurarDataPicker()
+    configurarDropdownTipoRegistro()
 
     val btnSalvar = findViewById<MaterialButton>(R.id.btnSalvarLocalMissfire)
     val btnFotos = findViewById<MaterialButton>(R.id.btnAdicionarFotos)
@@ -125,7 +128,8 @@ class MisfireActivity : AppCompatActivity() {
             override fun afterTextChanged(s: Editable?) { salvarRascunho() }
         }
         inputData.addTextChangedListener(watcher)
-        listOf(inputLocal, inputResponsavel, inputItens, inputDescricao).forEach { it.addTextChangedListener(watcher) }
+    listOf(inputLocal, inputResponsavel, inputItens, inputDescricao).forEach { it.addTextChangedListener(watcher) }
+    inputTipoRegistro.setOnItemClickListener { _, _, _, _ -> salvarRascunho() }
     }
 
     private fun salvarRascunho() {
@@ -135,6 +139,7 @@ class MisfireActivity : AppCompatActivity() {
             .putString("dataTexto", inputData.text?.toString())
             .putString("local", inputLocal.text?.toString())
             .putString("responsavel", inputResponsavel.text?.toString())
+            .putString("tipoRegistro", inputTipoRegistro.text?.toString())
             .putString("itens", inputItens.text?.toString())
             .putString("descricao", inputDescricao.text?.toString())
             .putString("fotos", pendingFotos.joinToString("|") { it.path })
@@ -151,7 +156,8 @@ class MisfireActivity : AppCompatActivity() {
             inputData.setText(prefs.getString("dataTexto", ""))
         }
         inputLocal.setText(prefs.getString("local", ""), false)
-        inputResponsavel.setText(prefs.getString("responsavel", ""))
+    inputResponsavel.setText(prefs.getString("responsavel", ""))
+    inputTipoRegistro.setText(prefs.getString("tipoRegistro", ""), false)
         inputItens.setText(prefs.getString("itens", ""))
         inputDescricao.setText(prefs.getString("descricao", ""))
         // Fotos
@@ -245,12 +251,23 @@ class MisfireActivity : AppCompatActivity() {
         }
     }
 
+    private fun configurarDropdownTipoRegistro() {
+        val tipos = listOf(
+            "Mina viva previamente detectada",
+            "Mina viva detectada pós desmonte"
+        )
+        val adapter = android.widget.ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, tipos)
+        inputTipoRegistro.setAdapter(adapter)
+        inputTipoRegistro.keyListener = null
+        inputTipoRegistro.setOnClickListener { inputTipoRegistro.showDropDown() }
+        inputTipoRegistro.setOnFocusChangeListener { _, hasFocus -> if (hasFocus) inputTipoRegistro.showDropDown() }
+    }
+
     private fun validarCampos(): Boolean {
         if (dataOcorrenciaMillis == null) { toast("Informe a data"); return false }
-        if (inputLocal.text.isNullOrBlank()) { toast("Informe o local"); return false }
-        if (inputResponsavel.text.isNullOrBlank()) { toast("Informe o responsável"); return false }
-        if (inputItens.text.isNullOrBlank()) { toast("Informe os itens encontrados"); return false }
-        if (inputDescricao.text.isNullOrBlank()) { toast("Informe a descrição"); return false }
+        if (inputLocal.text.isNullOrBlank()) { toast("Informe a unidade operacional"); return false }
+        if (inputResponsavel.text.isNullOrBlank()) { toast("Informe o nome do usuário"); return false }
+        if (inputTipoRegistro.text.isNullOrBlank()) { toast("Selecione o tipo de registro"); return false }
         return true
     }
 
@@ -261,8 +278,9 @@ class MisfireActivity : AppCompatActivity() {
             dataOcorrencia = dataOcorrenciaMillis!!,
             local = inputLocal.text.toString().trim(),
             responsavel = inputResponsavel.text.toString().trim(),
-            itensEncontrados = inputItens.text.toString().trim(),
-            descricaoOcorrencia = inputDescricao.text.toString().trim()
+        itensEncontrados = inputItens.text?.toString()?.trim().orEmpty(),
+        descricaoOcorrencia = inputDescricao.text?.toString()?.trim().orEmpty(),
+        infoAdicionais = construirInfoAdicionais()
         )
         uiScope.launch(Dispatchers.IO) {
             if (existenteId > -1) {
@@ -275,6 +293,7 @@ class MisfireActivity : AppCompatActivity() {
                         responsavel = baseEntity.responsavel,
                         itensEncontrados = baseEntity.itensEncontrados,
                         descricaoOcorrencia = baseEntity.descricaoOcorrencia,
+                        infoAdicionais = baseEntity.infoAdicionais,
                         lastUpdated = System.currentTimeMillis()
                     )
                     repository.atualizarMissfire(atualizado)
@@ -345,6 +364,11 @@ class MisfireActivity : AppCompatActivity() {
         }
     }
 
+    private fun construirInfoAdicionais(): String {
+        val tipo = inputTipoRegistro.text?.toString()?.trim().orEmpty()
+        return if (tipo.isBlank()) "" else "Tipo de registro: $tipo"
+    }
+
     private fun carregarMissfireExistente(id: Int) {
         uiScope.launch(Dispatchers.IO) {
             val existente = repository.obterMissfire(id)
@@ -359,6 +383,13 @@ class MisfireActivity : AppCompatActivity() {
                     inputResponsavel.setText(existente.responsavel)
                     inputItens.setText(existente.itensEncontrados)
                     inputDescricao.setText(existente.descricaoOcorrencia)
+                    // tentar extrair tipo do campo infoAdicionais se existir
+                    existente.infoAdicionais?.let { info ->
+                        val prefix = "Tipo de registro: "
+                        if (info.startsWith(prefix)) {
+                            inputTipoRegistro.setText(info.removePrefix(prefix), false)
+                        }
+                    }
                     // Preenche metadados de visualização
                     findViewById<View>(R.id.sectionMetadados)?.visibility = View.VISIBLE
                     val metaTv = findViewById<TextView>(R.id.tvMetaData)
